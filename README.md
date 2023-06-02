@@ -56,13 +56,15 @@ python cLDVAE_model.py
 
 In running, the useful parameters:
 
-* max_epoch:
-* lr_cLDVAE:
-* beta:
-* gamma:
-* batch_size:
-* s_latent_dim:
-* z_latent_dim:
+* max_epoch: defines the max iteration for training cLDVAE model. The default value is 1000. You can modify it. The smaller the parameter, the less time.
+* lr_cLDVAE: defines learning rate parameter for learning common features of target and reference sets by cLDVAE. The default value of the parameters is 3e-6.
+* beta: defines the penalty for the KL divergence. The default value is 1. You can adjust it from 0 to 1 by 0.1;
+* gamma: defines the penalty for the Total Correlation loss. The default value is 0. You can further improve the results of common features by adjusting it from -100 to 100 by 10.
+* batch_size: defines the batch size for training cLDVAE model. The default value is 128. You can modify it based on your memory size. The larger the parameter, the less time.
+* s_latent_dim: defines the dimension of salient features of cLDVAE model. The default value of the tumor and cell line dataset is 2.
+* z_latent_dim: defines the dimension of common features of cLDVAE model. The default value of the tumor and cell line dataset is 100. Given a specific dimension of salient features, a higher dimension of common features is recommended.
+
+Note: To reduce your waiting time, we have uploaded the processed results into the folder ./Data/CellMirror_test_data/. You can directly perform step 2.
 
 ### Step 2. Run CellMirror model
 
@@ -70,10 +72,10 @@ This function from R file named CellMirror_model.R automatically learns batch co
 
 In running, the useful parameters:
 
-* k1:
-* k2:
-* ndist:
-* subset_genes:
+* k1: defines the number of nearest neighbors of target data in the reference data. The default value is 5.
+* k2: defines the number of nearest neighbors of reference data in the target data. The default value is 50.
+* ndist: defines the ndist parameter used for MNN. The default value is 3.
+* subset_genes: defines a set of biologically relevant genes (e.g., highly variable genes) to facilitate identification of MNNs. The default subset_genes are the highly variable genes that are common in both expression data.
 
 ## Output
 
