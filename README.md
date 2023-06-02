@@ -81,15 +81,22 @@ In running, the useful parameters:
 
 ### Run Downstream analysis on the output file
 
+* TCGA_CCLE_data_tumor_X_cLDVAE_only.csv
+* TCGA_CCLE_data_CL_X_cLDVAE_only.csv
+* TCGA_CCLE_data_tumor_salient_features.csv
+* TCGA_CCLE_data_salient_loadings_matrix.csv
+* TCGA_CCLE_data_tumor_X_CellMirror.csv
+* TCGA_CCLE_data_CL_X_CellMirror.csv
+
 ```
 python Downstream_analysis.py
 ```
 
 This function provides 3 downstream analyses as follows:
 
-* Label transfer:
-* Interpretability:
-* Visualization:
+1. Label transfer: uses the aligned results (i.e., TCGA_CCLE_data_tumor_X_cLDVAE_only.csv & TCGA_CCLE_data_CL_X_cLDVAE_only.csv or TCGA_CCLE_data_tumor_X_CellMirror.csv & TCGA_CCLE_data_CL_X_CellMirror.csv) as input to predict the cell type of each cell in the target set or reference set.
+2. Interpretability: uses the target-specific representations and linear decoder weight for processing salient features (i.e., CGA_CCLE_data_tumor_salient_features.csv & TCGA_CCLE_data_salient_loadings_matrix.csv) as input to find the highly expressed genes in salient features.
+3. Visualization: maps the aligned results (i.e., TCGA_CCLE_data_tumor_X_cLDVAE_only.csv & TCGA_CCLE_data_CL_X_cLDVAE_only.csv or TCGA_CCLE_data_tumor_X_CellMirror.csv & TCGA_CCLE_data_CL_X_CellMirror.csv) into 2D-UMAP spaces for visualization.
 
 # References
 
