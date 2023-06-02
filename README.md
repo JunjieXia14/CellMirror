@@ -42,9 +42,52 @@ pip install -r used_package.txt
 
 ## Input
 
+Take the global alignment of tumors and cell lines as an example, the expression data and annotation file are available at https://github.com/JunjieXia14/CellMirror/tree/main/Data
+
 ## Run
 
+### Step 1. Run cLDVAE model
+
+This function automatically (1) learns common features of target and reference sets by contrastive learning, (2) extracts target-specific representations, and (3) linear decoder weight for processing salient features. It takes ~5 mins for loading tumor and cell line data, and ~8 mins for contrastive learning.
+
+```
+python cLDVAE_model.py
+```
+
+In running, the useful parameters:
+
+* max_epoch:
+* lr_cLDVAE:
+* beta:
+* gamma:
+* batch_size:
+* s_latent_dim:
+* z_latent_dim:
+
+### Step 2. Run CellMirror model
+
+This function from R file named CellMirror_model.R automatically learns batch corrected results of the common features of target and reference sets using MNN. It takes ~30 seconds.
+
+In running, the useful parameters:
+
+* k1:
+* k2:
+* ndist:
+* subset_genes:
+
 ## Output
+
+### Run Downstream analysis on the output file
+
+```
+python Downstream_analysis.py
+```
+
+This function provides 3 downstream analyses as follows:
+
+* Label transfer:
+* Interpretability:
+* Visualization:
 
 # References
 
