@@ -83,7 +83,7 @@ model_cLDVAE = cLDVAE(args=args,
 if args.use_cuda:
     model_cLDVAE.cuda()
 
-history = model_cLDVAE.fit()
+history = model_cLDVAE.fit(train_loader, total_loader)
 
 outputs = model_cLDVAE.predict(total_loader)
 tg_z_output = outputs["tg_z_outputs"]
@@ -93,16 +93,10 @@ noContamination_output = pd.DataFrame(tg_z_output, index=TCGA_obj.obs.index, col
 
 bg_output = pd.DataFrame(bg_z_output[:len(CCLE_obj.obs),:], index=CCLE_obj.obs.index, columns=irrelevant_colnames)
 
-# data for interpretability, MNN & visualization 
+# data for MNN, label transfer, visualization & interpretability 
 
 noContamination_output.to_csv('TCGA_CCLE_data_tumor_X_cLDVAE_only.csv')
 bg_output.to_csv('TCGA_CCLE_data_CL_X_cLDVAE_only.csv')
-
-cLDVAE_only_obj = sc.AnnData( pd.concat([noContamination_output, bg_output], axis = 0), pd.concat([TCGA_obj.obs, CCLE_obj.obs], axis=0), pd.DataFrame(irrelevant_colnames,index=irrelevant_colnames) )
-sc.pp.neighbors(cLDVAE_only_obj, n_neighbors=10, metric='correlation',use_rep='X')
-sc.tl.umap(cLDVAE_only_obj,min_dist=0.5)
-cLDVAE_only_obj.obs = cLDVAE_only_obj.obs.merge(cLDVAE_only_obj.obsm.to_df()[['X_umap1','X_umap2']], how='inner', left_index=True, right_index=True)
-cLDVAE_only_obj.obs.to_csv(f"en{intermediate_dim_en}_de{intermediate_dim_de}_cLDVAE_only_comb_Ann_lr{args.lr_cLDVAE}_beta{args.beta}_gamma{args.gamma}_bs{args.batch_size}_time{datetime.datetime.now()}.csv")
 
 tg_s_output = outputs["tg_s_outputs"]
 tg_s_output = pd.DataFrame(tg_s_output, index=TCGA_obj.obs.index, columns=salient_colnames)
