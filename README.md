@@ -2,7 +2,7 @@
 
 ![image](https://github.com/JunjieXia14/CellMirror/blob/main/CellMirror_utils/Main_figure_CellMirror.jpg)
 
-**Overview of CellMirror. a** Given two different transcriptome data as target and reference sets, CellMirror adopts cLDVAE to learn salient features that are unique to the target set and common features that are shared by both sets using contrastive learning. **b** CellMirror uses the common components disentangled from cLDVAE as the input of MNN for eliminating batch effects and ultimately aligns target and reference sets. **c** The learned weights from linear decoder in cLDVAE are used to establish relations between cell (or spot) representation and gene expression, with a higher value indicating enrichment of corresponding gene in the latent feature. The aligned set by CellMirror can be used for visualization and label transfer: (i) annotating each cell line or bulk tumor sample with the most frequent cancer type by its nearest neighbors when applied to combine tumors and cell lines; (ii) predicting the cell type probabilities for each spot with the cell type proportions of its nearest neighbors when applied to integrate scRNA-seq and ST data.
+**Overview of CellMirror.** **a** Given two different transcriptome data as target and reference data, CellMirror adopts contrastive variational autoencoder (with non-linear encoder and linear decoder) to learn salient features that are unique to the target dataset and common features that are shared by both datasets (Methods). **b** CellMirror uses the common features disentangled from cLDVAE as input for MNN to eliminate batch effects (Methods), and ultimately aligns target and reference datasets. **c** The learned weights from the linear decoder in cLDVAE can be used to identify the genes or gene programs related to features (Methods), with a higher value indicating enrichment of the corresponding gene in a latent feature. The dataset aligned by CellMirror can be used for visualization and label transfer: (i) annotating each cell line or tumor sample with the most frequent cancer type among its nearest neighbors, when applied to integrate cancer samples and cell lines; (ii) predicting cell type probabilities for each spot based on the cell type proportions of its nearest neighbors, when integrating scRNA-seq and ST data.
 
 # Installation
 
@@ -69,6 +69,10 @@ Note: To reduce your waiting time, we have uploaded the processed results into t
 ### Step 2. Run CellMirror model
 
 This function from R file named CellMirror_model.R automatically learns batch corrected results of the common features of target and reference sets using MNN. It takes ~30 seconds.
+
+```
+Rscript CellMirror_model.R
+```
 
 In running, the useful parameters:
 
