@@ -1,3 +1,5 @@
+![image](https://github.com/JunjieXia14/CellMirror/blob/main/CellMirror_banner.svg)
+
 # CellMirror: Dissecting cell populations across heterogeneous transcriptome data using interpretable contrastive learning.
 
 ![image](https://github.com/JunjieXia14/CellMirror/blob/main/CellMirror_utils/Main_figure_CellMirror.jpg)
