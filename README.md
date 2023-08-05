@@ -2,7 +2,7 @@
 
 # CellMirror: Dissecting cell populations across heterogeneous transcriptome data using interpretable contrastive learning.
 
-![image](https://github.com/JunjieXia14/CellMirror/blob/main/CellMirror_utils/Main_figure_CellMirror.jpg)
+![image](https://github.com/JunjieXia14/CellMirror/blob/main/CellMirror_utils/Main_figure_CellMirror.png)
 
 **Overview of CellMirror.** **a** Given two different transcriptome data as target and reference data, CellMirror adopts contrastive variational autoencoder (with non-linear encoder and linear decoder) to learn salient features that are unique to the target dataset and common features that are shared by both datasets (Methods). **b** CellMirror uses the common features disentangled from cLDVAE as input for MNN to eliminate batch effects (Methods), and ultimately aligns target and reference datasets. **c** The learned weights from the linear decoder in cLDVAE can be used to identify the genes or gene programs related to features (Methods), with a higher value indicating enrichment of the corresponding gene in a latent feature. The dataset aligned by CellMirror can be used for visualization and label transfer: (i) annotating each cell line or tumor sample with the most frequent cancer type among its nearest neighbors, when applied to integrate cancer samples and cell lines; (ii) predicting cell type probabilities for each spot based on the cell type proportions of its nearest neighbors, when integrating scRNA-seq and ST data.
 
