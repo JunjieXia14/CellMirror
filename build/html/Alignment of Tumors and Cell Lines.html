@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Alignment of Tumors and Cell Lines &mdash; CellMirror v1 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Biological Interpretability" href="Biological%20Interpretability.html" />
+    <link rel="prev" title="Introduction" href="Introduction.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            CellMirror
+              <img src="_static/CellMirror_icon.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Install CellMirror</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Installation.html">Installation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Get Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Introduction.html#id1">Introduction</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Alignment of Tumors and Cell Lines</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#step0-loading-packages-python">Step0: Loading packages (Python)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#step1-reading-and-preprocessing-data-python">Step1: Reading and preprocessing data (Python)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#step2-training-cldvae-model-python">Step2: Training cLDVAE model (Python)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#step3-saving-cldvae-outputs-python">Step3: Saving cLDVAE outputs (Python)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#step4-implementing-mnn-on-the-processed-data-r">Step4: Implementing MNN on the processed data (R)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#step5-saving-results-aligned-by-cellmirror-r">Step5: Saving results aligned by CellMirror (R)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#step6-visualization-r">Step6: Visualization (R)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Biological%20Interpretability.html">Biological Interpretability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Integrating%20ST%20and%20scRNA-seq%20Data.html">Step0: Loading packages (Python)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Integrating%20ST%20and%20scRNA-seq%20Data.html#step1-reading-and-preprocessing-data-python">Step1: Reading and preprocessing data (Python)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Integrating%20ST%20and%20scRNA-seq%20Data.html#step2-training-cldvae-model-python">Step2: Training cLDVAE model (Python)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Integrating%20ST%20and%20scRNA-seq%20Data.html#step3-saving-cldvae-outputs-python">Step3: Saving cLDVAE outputs (Python)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Integrating%20ST%20and%20scRNA-seq%20Data.html#step4-implementing-mnn-on-the-processed-data-r">Step4: Implementing MNN on the processed data (R)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Integrating%20ST%20and%20scRNA-seq%20Data.html#step5-saving-results-aligned-by-cellmirror-r">Step5: Saving results aligned by CellMirror (R)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Integrating%20ST%20and%20scRNA-seq%20Data.html#step6-visualization-r">Step6: Visualization (R)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Integrating%20ST%20and%20scRNA-seq%20Data.html#id2">Step0: Loading packages (Python)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Integrating%20ST%20and%20scRNA-seq%20Data.html#id3">Step1: Reading and preprocessing data (Python)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Integrating%20ST%20and%20scRNA-seq%20Data.html#id4">Step2: Training cLDVAE model (Python)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Integrating%20ST%20and%20scRNA-seq%20Data.html#id5">Step3: Saving cLDVAE outputs (Python)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Integrating%20ST%20and%20scRNA-seq%20Data.html#id6">Step4: Implementing MNN on the processed data (R)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Integrating%20ST%20and%20scRNA-seq%20Data.html#id7">Step5: Saving results aligned by CellMirror (R)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Integrating%20ST%20and%20scRNA-seq%20Data.html#id8">Step6: Visualization (R)</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">CellMirror</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Alignment of Tumors and Cell Lines</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/Alignment of Tumors and Cell Lines.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="alignment-of-tumors-and-cell-lines">
+<h1>Alignment of Tumors and Cell Lines<a class="headerlink" href="#alignment-of-tumors-and-cell-lines" title="Permalink to this heading"></a></h1>
+<p>In this tutorial, we show how to apply <code class="docutils literal notranslate"><span class="pre">CellMirror</span></code> to align bulk tumor samples and cancer cell lines. As an example, we directly downloaded the RNA-seq data of bulk tumor and cell line samples from <a class="reference external" href="https://www.nature.com/articles/s41467-020-20294-x">Warren, et al. 2021.</a>, including 12,236 cancer samples with 33 cancer types, and 1,249 cell line samples with 34 cancer type. We directly utilized the normalized RNA-seq data by the previous study.</p>
+<section id="step0-loading-packages-python">
+<h2>Step0: Loading packages (Python)<a class="headerlink" href="#step0-loading-packages-python" title="Permalink to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">import</span> <span class="nn">math</span>
+<span class="linenos"> 2</span><span class="kn">import</span> <span class="nn">random</span>
+<span class="linenos"> 3</span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="linenos"> 4</span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="linenos"> 5</span><span class="kn">import</span> <span class="nn">scanpy</span> <span class="k">as</span> <span class="nn">sc</span>
+<span class="linenos"> 6</span><span class="kn">import</span> <span class="nn">datetime</span>
+<span class="linenos"> 7</span>
+<span class="linenos"> 8</span><span class="kn">from</span> <span class="nn">CellMirror_utils.utilities</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="linenos"> 9</span><span class="kn">from</span> <span class="nn">CellMirror_utils.layers</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="linenos">10</span><span class="kn">from</span> <span class="nn">CellMirror_utils.cLDVAE_torch</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="linenos">11</span><span class="kn">import</span> <span class="nn">torch.utils.data</span> <span class="k">as</span> <span class="nn">data_utils</span>
+<span class="linenos">12</span>
+<span class="linenos">13</span><span class="n">parser</span> <span class="o">=</span> <span class="n">parameter_setting</span><span class="p">()</span>
+<span class="linenos">14</span><span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_known_args</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+<span class="linenos">15</span>
+<span class="linenos">16</span><span class="n">args</span><span class="o">.</span><span class="n">batch_size</span> <span class="o">=</span> <span class="mi">128</span>
+<span class="linenos">17</span><span class="n">args</span><span class="o">.</span><span class="n">lr_cLDVAE</span> <span class="o">=</span> <span class="mf">3e-6</span>
+<span class="linenos">18</span><span class="n">args</span><span class="o">.</span><span class="n">beta</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="linenos">19</span><span class="n">args</span><span class="o">.</span><span class="n">gamma</span> <span class="o">=</span> <span class="o">-</span><span class="mi">100</span>
+<span class="linenos">20</span>
+<span class="linenos">21</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">seed</span><span class="p">)</span>
+<span class="linenos">22</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">seed</span><span class="p">)</span>
+<span class="linenos">23</span><span class="n">torch</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">seed</span><span class="p">)</span>
+<span class="linenos">24</span><span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">seed</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="step1-reading-and-preprocessing-data-python">
+<h2>Step1: Reading and preprocessing data (Python)<a class="headerlink" href="#step1-reading-and-preprocessing-data-python" title="Permalink to this heading"></a></h2>
+<p>The necessary input files includes:
+1. The gene expression matrix;
+2. Samples’ attributes;
+3. Genes’ information.</p>
+<p>First, we need to prepare the RNA-seq data of tumors and cell lines into <code class="docutils literal notranslate"><span class="pre">AnnData</span></code> objects. See <a class="reference external" href="https://anndata.readthedocs.io/en/latest/index.html">AnnData</a> for more details if you are unfamiliar, including how to construct <code class="docutils literal notranslate"><span class="pre">AnnData</span></code> objects from scratch, and how to read data in other formats(.csv, .mtx, etc.) into <code class="docutils literal notranslate"><span class="pre">AnnData</span></code> objects. Here, we compile a function <cite>Load_data()</cite> for loading all the aforementioned 3 types of files.</p>
+<p>Then, we follow the <code class="docutils literal notranslate"><span class="pre">scanpy</span></code> pipeline for data preprocessing. See <a class="reference external" href="https://scanpy-tutorials.readthedocs.io/en/latest/pbmc3k.html">scanpy</a> for more details if you are unfamiliar. In this scenario, we select 5,000 highly variable genes for tumors and cell lines, respectively.</p>
+<p>To align the number of samples for tumors and cell lines, which will be used in Step2 for training model, we generate random cell line samples from a multivariate normal distribution with the mean vector and covariance matrix of cell line gene expression.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="c1"># preprocessing</span>
+<span class="linenos"> 2</span><span class="n">result</span> <span class="o">=</span> <span class="n">load_data</span><span class="p">()</span>
+<span class="linenos"> 3</span>
+<span class="linenos"> 4</span><span class="n">TCGA_obj</span> <span class="o">=</span> <span class="n">sc</span><span class="o">.</span><span class="n">AnnData</span><span class="p">(</span><span class="n">X</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">obs</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">var</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<span class="linenos"> 5</span><span class="n">CCLE_obj</span> <span class="o">=</span> <span class="n">sc</span><span class="o">.</span><span class="n">AnnData</span><span class="p">(</span><span class="n">X</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">obs</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span> <span class="n">var</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<span class="linenos"> 6</span>
+<span class="linenos"> 7</span><span class="n">sc</span><span class="o">.</span><span class="n">pp</span><span class="o">.</span><span class="n">highly_variable_genes</span><span class="p">(</span><span class="n">TCGA_obj</span><span class="p">,</span> <span class="n">n_top_genes</span><span class="o">=</span><span class="mi">5000</span><span class="p">)</span>
+<span class="linenos"> 8</span><span class="n">sc</span><span class="o">.</span><span class="n">pp</span><span class="o">.</span><span class="n">highly_variable_genes</span><span class="p">(</span><span class="n">CCLE_obj</span><span class="p">,</span> <span class="n">n_top_genes</span><span class="o">=</span><span class="mi">5000</span><span class="p">)</span>
+<span class="linenos"> 9</span><span class="n">common_HVGs</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">intersect1d</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">TCGA_obj</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="n">TCGA_obj</span><span class="o">.</span><span class="n">var</span><span class="p">[</span><span class="s1">&#39;highly_variable&#39;</span><span class="p">]]),</span><span class="nb">list</span><span class="p">(</span><span class="n">CCLE_obj</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="n">CCLE_obj</span><span class="o">.</span><span class="n">var</span><span class="p">[</span><span class="s1">&#39;highly_variable&#39;</span><span class="p">]]))</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+<span class="linenos">10</span>
+<span class="linenos">11</span><span class="n">TCGA_obj</span><span class="p">,</span> <span class="n">CCLE_obj</span> <span class="o">=</span> <span class="n">TCGA_obj</span><span class="p">[:,</span><span class="n">common_HVGs</span><span class="p">],</span> <span class="n">CCLE_obj</span><span class="p">[:,</span><span class="n">common_HVGs</span><span class="p">]</span>
+<span class="linenos">12</span><span class="n">genes_info</span> <span class="o">=</span> <span class="n">TCGA_obj</span><span class="o">.</span><span class="n">var</span>
+<span class="linenos">13</span><span class="n">TCGA_obj_X_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">TCGA_obj</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">TCGA_obj</span><span class="o">.</span><span class="n">obs</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">genes_info</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+<span class="linenos">14</span><span class="n">TCGA_obj_X_df</span> <span class="o">=</span> <span class="n">TCGA_obj_X_df</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">TCGA_obj_X_df</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="linenos">15</span><span class="n">CCLE_obj_X_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">CCLE_obj</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">CCLE_obj</span><span class="o">.</span><span class="n">obs</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">genes_info</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+<span class="linenos">16</span><span class="n">CCLE_obj_X_df</span> <span class="o">=</span> <span class="n">CCLE_obj_X_df</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">CCLE_obj_X_df</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="linenos">17</span>
+<span class="linenos">18</span><span class="n">tumor_scale</span> <span class="o">=</span> <span class="n">TCGA_obj_X_df</span><span class="o">.</span><span class="n">values</span>
+<span class="linenos">19</span>
+<span class="linenos">20</span><span class="n">CL_scale</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span> <span class="p">(</span><span class="n">CCLE_obj_X_df</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">multivariate_normal</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">CCLE_obj_X_df</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">cov</span><span class="p">(</span><span class="n">CCLE_obj_X_df</span><span class="o">.</span><span class="n">T</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">TCGA_obj_X_df</span><span class="p">)</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">CCLE_obj_X_df</span><span class="p">))),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span> <span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Hyperparameters</strong></p>
+<ul class="simple">
+<li><p>n_top_genes: Number of highly-variable genes to keep.</p></li>
+</ul>
+</section>
+<section id="step2-training-cldvae-model-python">
+<h2>Step2: Training cLDVAE model (Python)<a class="headerlink" href="#step2-training-cldvae-model-python" title="Permalink to this heading"></a></h2>
+<p>Next, we train a cLDVAE model for aligning bulk tumor samples and cancer cell lines.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="c1"># prepare dataloaders for cLDVAE</span>
+<span class="linenos"> 2</span>
+<span class="linenos"> 3</span><span class="n">background</span> <span class="o">=</span> <span class="p">(</span><span class="n">CL_scale</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;float32&#39;</span><span class="p">)</span>
+<span class="linenos"> 4</span>
+<span class="linenos"> 5</span><span class="n">target</span> <span class="o">=</span> <span class="p">(</span><span class="n">tumor_scale</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;float32&#39;</span><span class="p">)</span>
+<span class="linenos"> 6</span>
+<span class="linenos"> 7</span><span class="n">batch_size</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">batch_size</span>
+<span class="linenos"> 8</span>
+<span class="linenos"> 9</span><span class="n">train</span> <span class="o">=</span> <span class="n">data_utils</span><span class="o">.</span><span class="n">TensorDataset</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">target</span><span class="p">),</span><span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">background</span><span class="p">))</span>
+<span class="linenos">10</span><span class="n">train_loader</span> <span class="o">=</span> <span class="n">data_utils</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">(</span><span class="n">train</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="linenos">11</span>
+<span class="linenos">12</span><span class="n">total</span> <span class="o">=</span> <span class="n">data_utils</span><span class="o">.</span><span class="n">TensorDataset</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">target</span><span class="p">),</span><span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">background</span><span class="p">))</span>
+<span class="linenos">13</span><span class="n">total_loader</span> <span class="o">=</span> <span class="n">data_utils</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">(</span><span class="n">total</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="linenos">14</span>
+<span class="linenos">15</span><span class="c1"># configurate cLDVAE</span>
+<span class="linenos">16</span>
+<span class="linenos">17</span><span class="n">input_dim</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">genes_info</span><span class="p">)</span>
+<span class="linenos">18</span><span class="n">intermediate_dim_en</span><span class="o">=</span><span class="p">[</span><span class="mi">1000</span><span class="p">]</span>
+<span class="linenos">19</span><span class="n">intermediate_dim_de</span><span class="o">=</span><span class="p">[</span><span class="mi">1000</span><span class="p">]</span>
+<span class="linenos">20</span>
+<span class="linenos">21</span><span class="n">s_latent_dim</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="linenos">22</span><span class="n">z_latent_dim</span> <span class="o">=</span> <span class="mi">100</span>
+<span class="linenos">23</span>
+<span class="linenos">24</span><span class="n">salient_colnames</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">s_latent_dim</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+<span class="linenos">25</span><span class="k">for</span> <span class="n">sColumn</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">s_latent_dim</span><span class="p">):</span>
+<span class="linenos">26</span>    <span class="n">salient_colnames</span><span class="p">[</span><span class="n">sColumn</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;s&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">salient_colnames</span><span class="p">[</span><span class="n">sColumn</span><span class="p">])</span>
+<span class="linenos">27</span><span class="n">irrelevant_colnames</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">z_latent_dim</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+<span class="linenos">28</span><span class="k">for</span> <span class="n">iColumn</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">z_latent_dim</span><span class="p">):</span>
+<span class="linenos">29</span>    <span class="n">irrelevant_colnames</span><span class="p">[</span><span class="n">iColumn</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;z&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">irrelevant_colnames</span><span class="p">[</span><span class="n">iColumn</span><span class="p">])</span>
+<span class="linenos">30</span>
+<span class="linenos">31</span><span class="n">n</span> <span class="o">=</span> <span class="n">TCGA_obj</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="linenos">32</span><span class="n">args</span><span class="o">.</span><span class="n">last_batch_size</span> <span class="o">=</span> <span class="n">n</span> <span class="o">-</span> <span class="nb">int</span><span class="p">(</span><span class="n">n</span><span class="o">/</span><span class="n">batch_size</span><span class="p">)</span><span class="o">*</span><span class="n">batch_size</span>
+<span class="linenos">33</span>
+<span class="linenos">34</span><span class="n">model_cLDVAE</span> <span class="o">=</span> <span class="n">cLDVAE</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span>
+<span class="linenos">35</span>                    <span class="n">n_input</span> <span class="o">=</span> <span class="n">input_dim</span><span class="p">,</span>
+<span class="linenos">36</span>                    <span class="n">n_hidden_en</span> <span class="o">=</span> <span class="n">intermediate_dim_en</span><span class="p">,</span> <span class="n">n_hidden_de</span> <span class="o">=</span> <span class="n">intermediate_dim_de</span><span class="p">,</span>
+<span class="linenos">37</span>                    <span class="n">n_latent_s</span> <span class="o">=</span> <span class="n">s_latent_dim</span><span class="p">,</span> <span class="n">n_latent_z</span> <span class="o">=</span> <span class="n">z_latent_dim</span><span class="p">)</span>
+<span class="linenos">38</span>
+<span class="linenos">39</span><span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">use_cuda</span><span class="p">:</span>
+<span class="linenos">40</span>    <span class="n">model_cLDVAE</span><span class="o">.</span><span class="n">cuda</span><span class="p">()</span>
+<span class="linenos">41</span>
+<span class="linenos">42</span><span class="c1"># train cLDVAE</span>
+<span class="linenos">43</span>
+<span class="linenos">44</span><span class="n">history</span> <span class="o">=</span> <span class="n">model_cLDVAE</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">train_loader</span><span class="p">,</span> <span class="n">total_loader</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>After convergence, the trained model can be used for predicting aligned outputs.</p>
+<p><strong>Hyperparameters</strong></p>
+<ul class="simple">
+<li><p>batch_size: The batch size for training cLDVAE model. The default value is 128. You can modify it based on your memory size. The larger the parameter, the less time.</p></li>
+<li><p>intermediate_dim_en / intermediate_dim_de: Number of nodes in the hidden layer of encoder / decoder.</p></li>
+<li><p>s_latent_dim / z_latent_dim: The dimensionality of salient / shared representation vector.</p></li>
+<li><p>last_batch_size: The size of last batch in each iteration.</p></li>
+<li><p>lr_cLDVAE: Learning rate parameter for training cLDVAE. The default value of the parameters is 3e-6.</p></li>
+<li><p>beta: The penalty for the KL divergence. The default value is 1. You can adjust it from 0 to 1 by 0.1.</p></li>
+<li><p>gamma: The penalty for the Total Correlation loss.</p></li>
+</ul>
+</section>
+<section id="step3-saving-cldvae-outputs-python">
+<h2>Step3: Saving cLDVAE outputs (Python)<a class="headerlink" href="#step3-saving-cldvae-outputs-python" title="Permalink to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="n">outputs</span> <span class="o">=</span> <span class="n">model_cLDVAE</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">total_loader</span><span class="p">)</span>
+<span class="linenos"> 2</span>
+<span class="linenos"> 3</span><span class="n">tg_z_output</span> <span class="o">=</span> <span class="n">outputs</span><span class="p">[</span><span class="s2">&quot;tg_z_outputs&quot;</span><span class="p">]</span>
+<span class="linenos"> 4</span><span class="n">noContamination_output</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">tg_z_output</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">TCGA_obj</span><span class="o">.</span><span class="n">obs</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">irrelevant_colnames</span><span class="p">)</span>
+<span class="linenos"> 5</span><span class="n">noContamination_output</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="s1">&#39;TCGA_CCLE_data_tumor_X_cLDVAE_only.csv&#39;</span><span class="p">)</span>
+<span class="linenos"> 6</span>
+<span class="linenos"> 7</span><span class="n">bg_z_output</span> <span class="o">=</span> <span class="n">outputs</span><span class="p">[</span><span class="s2">&quot;bg_z_outputs&quot;</span><span class="p">]</span>
+<span class="linenos"> 8</span><span class="n">bg_output</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">bg_z_output</span><span class="p">[:</span><span class="nb">len</span><span class="p">(</span><span class="n">CCLE_obj</span><span class="o">.</span><span class="n">obs</span><span class="p">),:],</span> <span class="n">index</span><span class="o">=</span><span class="n">CCLE_obj</span><span class="o">.</span><span class="n">obs</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">irrelevant_colnames</span><span class="p">)</span>
+<span class="linenos"> 9</span><span class="n">bg_output</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="s1">&#39;TCGA_CCLE_data_CL_X_cLDVAE_only.csv&#39;</span><span class="p">)</span>
+<span class="linenos">10</span>
+<span class="linenos">11</span><span class="n">cLDVAE_only_obj</span> <span class="o">=</span> <span class="n">sc</span><span class="o">.</span><span class="n">AnnData</span><span class="p">(</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">noContamination_output</span><span class="p">,</span> <span class="n">bg_output</span><span class="p">],</span> <span class="n">axis</span> <span class="o">=</span> <span class="mi">0</span><span class="p">),</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">TCGA_obj</span><span class="o">.</span><span class="n">obs</span><span class="p">,</span> <span class="n">CCLE_obj</span><span class="o">.</span><span class="n">obs</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">irrelevant_colnames</span><span class="p">,</span><span class="n">index</span><span class="o">=</span><span class="n">irrelevant_colnames</span><span class="p">)</span> <span class="p">)</span>
+<span class="linenos">12</span><span class="n">sc</span><span class="o">.</span><span class="n">pp</span><span class="o">.</span><span class="n">neighbors</span><span class="p">(</span><span class="n">cLDVAE_only_obj</span><span class="p">,</span> <span class="n">n_neighbors</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="s1">&#39;correlation&#39;</span><span class="p">,</span><span class="n">use_rep</span><span class="o">=</span><span class="s1">&#39;X&#39;</span><span class="p">)</span>
+<span class="linenos">13</span><span class="n">sc</span><span class="o">.</span><span class="n">tl</span><span class="o">.</span><span class="n">umap</span><span class="p">(</span><span class="n">cLDVAE_only_obj</span><span class="p">,</span><span class="n">min_dist</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+<span class="linenos">14</span><span class="n">cLDVAE_only_obj</span><span class="o">.</span><span class="n">obs</span> <span class="o">=</span> <span class="n">cLDVAE_only_obj</span><span class="o">.</span><span class="n">obs</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">cLDVAE_only_obj</span><span class="o">.</span><span class="n">obsm</span><span class="o">.</span><span class="n">to_df</span><span class="p">()[[</span><span class="s1">&#39;X_umap1&#39;</span><span class="p">,</span><span class="s1">&#39;X_umap2&#39;</span><span class="p">]],</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;inner&#39;</span><span class="p">,</span> <span class="n">left_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">right_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="linenos">15</span><span class="n">cLDVAE_only_obj</span><span class="o">.</span><span class="n">obs</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;en</span><span class="si">{</span><span class="n">intermediate_dim_en</span><span class="si">}</span><span class="s2">_de</span><span class="si">{</span><span class="n">intermediate_dim_de</span><span class="si">}</span><span class="s2">_cLDVAE_only_comb_Ann_lr</span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">lr_cLDVAE</span><span class="si">}</span><span class="s2">_beta</span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">beta</span><span class="si">}</span><span class="s2">_gamma</span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">gamma</span><span class="si">}</span><span class="s2">_bs</span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">batch_size</span><span class="si">}</span><span class="s2">_epoch_at</span><span class="si">{</span><span class="n">history</span><span class="p">[</span><span class="s1">&#39;epoch&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">_agg</span><span class="si">{</span><span class="n">aggrement_accuracy</span><span class="si">}</span><span class="s2">_time</span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="si">}</span><span class="s2">.csv&quot;</span><span class="p">)</span>
+<span class="linenos">16</span>
+<span class="linenos">17</span><span class="n">tg_s_output</span> <span class="o">=</span> <span class="n">outputs</span><span class="p">[</span><span class="s2">&quot;tg_s_outputs&quot;</span><span class="p">]</span>
+<span class="linenos">18</span><span class="n">tg_s_output</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">tg_s_output</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">TCGA_obj</span><span class="o">.</span><span class="n">obs</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">salient_colnames</span><span class="p">)</span>
+<span class="linenos">19</span><span class="n">tg_s_output</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;en</span><span class="si">{</span><span class="n">intermediate_dim_en</span><span class="si">}</span><span class="s2">_de</span><span class="si">{</span><span class="n">intermediate_dim_de</span><span class="si">}</span><span class="s2">_cLDVAE_only_TCGA_salient_features_lr</span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">lr_cLDVAE</span><span class="si">}</span><span class="s2">_beta</span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">beta</span><span class="si">}</span><span class="s2">_gamma</span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">gamma</span><span class="si">}</span><span class="s2">_bs</span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">batch_size</span><span class="si">}</span><span class="s2">_dim</span><span class="si">{</span><span class="n">s_latent_dim</span><span class="si">}</span><span class="s2">_time</span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="si">}</span><span class="s2">.csv&quot;</span><span class="p">)</span>
+<span class="linenos">20</span>
+<span class="linenos">21</span><span class="n">s_loadings_output</span> <span class="o">=</span> <span class="n">model_cLDVAE</span><span class="o">.</span><span class="n">get_loadings</span><span class="p">()[:,</span><span class="o">-</span><span class="p">(</span><span class="n">s_latent_dim</span><span class="p">):]</span>
+<span class="linenos">22</span><span class="n">s_loadings_output</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">s_loadings_output</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">genes_info</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">salient_colnames</span><span class="p">)</span>
+<span class="linenos">23</span><span class="n">s_loadings_output</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;en</span><span class="si">{</span><span class="n">intermediate_dim_en</span><span class="si">}</span><span class="s2">_de</span><span class="si">{</span><span class="n">intermediate_dim_de</span><span class="si">}</span><span class="s2">_cLDVAE_only_salient_loadings_matrix_lr</span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">lr_cLDVAE</span><span class="si">}</span><span class="s2">_beta</span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">beta</span><span class="si">}</span><span class="s2">_gamma</span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">gamma</span><span class="si">}</span><span class="s2">_bs</span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">batch_size</span><span class="si">}</span><span class="s2">_time</span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="si">}</span><span class="s2">.csv&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Output</strong></p>
+<p>This step generates files including shared features of tumors / cell lines, 2D UMAP embeddings of tumors and cell lines aligned by cLDVAE, salient features that are specific to tumors, linear decoder weights related to salient features.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>── Your work path
+   ├─ TCGA_CCLE_data_tumor_X_cLDVAE_only.csv
+   ├─ TCGA_CCLE_data_CL_X_cLDVAE_only.csv
+   ├─ cLDVAE_only_comb_Ann.csv
+   ├─ cLDVAE_only_TCGA_salient_features.csv
+   └─ cLDVAE_only_salient_loadings_matrix.csv
+</pre></div>
+</div>
+</section>
+<section id="step4-implementing-mnn-on-the-processed-data-r">
+<h2>Step4: Implementing MNN on the processed data (R)<a class="headerlink" href="#step4-implementing-mnn-on-the-processed-data-r" title="Permalink to this heading"></a></h2>
+<div class="highlight-R notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="nf">library</span><span class="p">(</span><span class="n">here</span><span class="p">)</span>
+<span class="linenos"> 2</span><span class="nf">library</span><span class="p">(</span><span class="n">magrittr</span><span class="p">)</span>
+<span class="linenos"> 3</span><span class="nf">library</span><span class="p">(</span><span class="n">tidyverse</span><span class="p">)</span>
+<span class="linenos"> 4</span><span class="nf">source</span><span class="p">(</span><span class="n">here</span><span class="o">::</span><span class="nf">here</span><span class="p">(</span><span class="s">&#39;CellMirror_utils&#39;</span><span class="p">,</span><span class="s">&#39;CellMirror_methods.R&#39;</span><span class="p">))</span>
+<span class="linenos"> 5</span>
+<span class="linenos"> 6</span><span class="n">TCGA_cor</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">read.csv</span><span class="p">(</span><span class="s">&#39;TCGA_CCLE_data_tumor_X_cLDVAE_only.csv&#39;</span><span class="p">)</span>
+<span class="linenos"> 7</span><span class="nf">rownames</span><span class="p">(</span><span class="n">TCGA_cor</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">TCGA_cor</span><span class="o">$</span><span class="n">X</span>
+<span class="linenos"> 8</span><span class="n">TCGA_cor</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">as.matrix</span><span class="p">(</span><span class="n">TCGA_cor</span><span class="p">[,</span><span class="m">-1</span><span class="p">])</span>
+<span class="linenos"> 9</span>
+<span class="linenos">10</span><span class="n">CCLE_cor</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">read.csv</span><span class="p">(</span><span class="s">&#39;TCGA_CCLE_data_CL_X_cLDVAE_only.csv&#39;</span><span class="p">)</span>
+<span class="linenos">11</span><span class="nf">rownames</span><span class="p">(</span><span class="n">CCLE_cor</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">CCLE_cor</span><span class="o">$</span><span class="n">X</span>
+<span class="linenos">12</span><span class="n">CCLE_cor</span><span class="o">&lt;-</span><span class="nf">as.matrix</span><span class="p">(</span><span class="n">CCLE_cor</span><span class="p">[,</span><span class="m">-1</span><span class="p">])</span>
+<span class="linenos">13</span>
+<span class="linenos">14</span><span class="n">mnn_res</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">run_MNN</span><span class="p">(</span><span class="n">CCLE_cor</span><span class="p">,</span><span class="w"> </span><span class="n">TCGA_cor</span><span class="p">,</span><span class="w"> </span><span class="n">k1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">80</span><span class="p">,</span><span class="w"> </span><span class="n">k2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">100</span><span class="p">,</span><span class="w"> </span><span class="n">ndist</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">global</span><span class="o">$</span><span class="n">mnn_ndist</span><span class="p">,</span><span class="n">subset_genes</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">colnames</span><span class="p">(</span><span class="n">TCGA_cor</span><span class="p">))</span>
+</pre></div>
+</div>
+<p><strong>Hyperparameters</strong></p>
+<ul class="simple">
+<li><p>k1: The number of nearest neighbors of target data in the reference data.</p></li>
+<li><p>k2: The number of nearest neighbors of reference data in the target data.</p></li>
+<li><p>ndist: The ndist parameter used for MNN. The default value is 3.</p></li>
+<li><p>subset_genes: A set of biologically relevant genes (e.g., highly variable genes) to facilitate identification of MNNs. The default subset_genes are the highly variable genes that are common in both expression data.</p></li>
+</ul>
+</section>
+<section id="step5-saving-results-aligned-by-cellmirror-r">
+<h2>Step5: Saving results aligned by CellMirror (R)<a class="headerlink" href="#step5-saving-results-aligned-by-cellmirror-r" title="Permalink to this heading"></a></h2>
+<div class="highlight-R notranslate"><div class="highlight"><pre><span></span><span class="linenos">1</span><span class="nf">write.csv</span><span class="p">(</span><span class="n">mnn_res</span><span class="o">$</span><span class="n">corrected</span><span class="p">,</span><span class="s">&#39;TCGA_CCLE_data_tumor_X_CellMirror.csv&#39;</span><span class="p">)</span>
+<span class="linenos">2</span><span class="nf">write.csv</span><span class="p">(</span><span class="n">CCLE_cor</span><span class="p">,</span><span class="s">&#39;TCGA_CCLE_data_CL_X_CellMirror.csv&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Output</strong></p>
+<p>This step generates files including common features of tumors / cell lines.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>── Your work path
+   ├─ TCGA_CCLE_data_tumor_X_CellMirror.csv
+   └─ TCGA_CCLE_data_CL_X_CellMirror.csv
+</pre></div>
+</div>
+</section>
+<section id="step6-visualization-r">
+<h2>Step6: Visualization (R)<a class="headerlink" href="#step6-visualization-r" title="Permalink to this heading"></a></h2>
+<div class="highlight-R notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="nf">library</span><span class="p">(</span><span class="n">here</span><span class="p">)</span>
+<span class="linenos"> 2</span><span class="nf">library</span><span class="p">(</span><span class="n">magrittr</span><span class="p">)</span>
+<span class="linenos"> 3</span><span class="nf">library</span><span class="p">(</span><span class="n">tidyverse</span><span class="p">)</span>
+<span class="linenos"> 4</span><span class="nf">source</span><span class="p">(</span><span class="n">here</span><span class="o">::</span><span class="nf">here</span><span class="p">(</span><span class="s">&#39;CellMirror_utils&#39;</span><span class="p">,</span><span class="s">&#39;CellMirror_methods.R&#39;</span><span class="p">))</span>
+<span class="linenos"> 5</span>
+<span class="linenos"> 6</span><span class="n">alignment</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">read.csv</span><span class="p">(</span><span class="s">&#39;C:\\Users\\我的电脑\\Desktop\\待办\\CellMirror_comb_Ann.csv&#39;</span><span class="p">)</span>
+<span class="linenos"> 7</span>
+<span class="linenos"> 8</span><span class="n">p8</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">ggplot2</span><span class="o">::</span><span class="nf">ggplot</span><span class="p">(</span><span class="n">alignment</span><span class="p">,</span>
+<span class="linenos"> 9</span><span class="w">                </span><span class="n">ggplot2</span><span class="o">::</span><span class="nf">aes</span><span class="p">(</span><span class="n">X_umap1</span><span class="p">,</span><span class="w"> </span><span class="n">X_umap2</span><span class="p">,</span><span class="w"> </span><span class="n">fill</span><span class="o">=</span><span class="n">lineage</span><span class="p">,</span><span class="w"> </span><span class="n">size</span><span class="o">=</span><span class="n">type</span><span class="p">,</span><span class="w"> </span><span class="n">color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">type</span><span class="p">))</span><span class="w"> </span><span class="o">+</span>
+<span class="linenos">10</span><span class="n">ggplot2</span><span class="o">::</span><span class="nf">geom_point</span><span class="p">(</span><span class="n">pch</span><span class="o">=</span><span class="m">21</span><span class="p">,</span><span class="w"> </span><span class="n">alpha</span><span class="o">=</span><span class="m">0.7</span><span class="p">)</span><span class="w">  </span><span class="o">+</span>
+<span class="linenos">11</span><span class="n">ggplot2</span><span class="o">::</span><span class="nf">scale_color_manual</span><span class="p">(</span><span class="n">values</span><span class="o">=</span><span class="nf">c</span><span class="p">(</span><span class="n">`CL`</span><span class="o">=</span><span class="s">&#39;black&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">`tumor`</span><span class="o">=</span><span class="s">&#39;white&#39;</span><span class="p">))</span><span class="w"> </span><span class="o">+</span>
+<span class="linenos">12</span><span class="n">ggplot2</span><span class="o">::</span><span class="nf">scale_size_manual</span><span class="p">(</span><span class="n">values</span><span class="o">=</span><span class="nf">c</span><span class="p">(</span><span class="n">`CL`</span><span class="o">=</span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="n">`tumor`</span><span class="o">=</span><span class="m">0.75</span><span class="p">))</span><span class="w"> </span><span class="o">+</span>
+<span class="linenos">13</span><span class="n">ggplot2</span><span class="o">::</span><span class="nf">theme_void</span><span class="p">()</span><span class="w"> </span><span class="o">+</span>
+<span class="linenos">14</span><span class="n">ggplot2</span><span class="o">::</span><span class="nf">theme</span><span class="p">(</span><span class="n">legend.position</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;right&#39;</span><span class="p">,</span>
+<span class="linenos">15</span><span class="w">                </span><span class="n">text</span><span class="o">=</span><span class="n">ggplot2</span><span class="o">::</span><span class="nf">element_text</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="m">8</span><span class="p">),</span>
+<span class="linenos">16</span><span class="w">                </span><span class="n">legend.margin</span><span class="w"> </span><span class="o">=</span><span class="n">ggplot2</span><span class="o">::</span><span class="nf">margin</span><span class="p">(</span><span class="m">0</span><span class="p">,</span><span class="m">0</span><span class="p">,</span><span class="m">0</span><span class="p">,</span><span class="m">0</span><span class="p">),</span>
+<span class="linenos">17</span><span class="w">                </span><span class="n">plot.title</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ggplot2</span><span class="o">::</span><span class="nf">element_text</span><span class="p">(</span><span class="n">hjust</span><span class="o">=</span><span class="m">0.5</span><span class="p">),</span>
+<span class="linenos">18</span><span class="w">                </span><span class="n">legend.key.size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">unit</span><span class="p">(</span><span class="m">10</span><span class="p">,</span><span class="s">&#39;point&#39;</span><span class="p">))</span><span class="w"> </span><span class="o">+</span>
+<span class="linenos">19</span><span class="n">ggplot2</span><span class="o">::</span><span class="nf">guides</span><span class="p">(</span><span class="n">fill</span><span class="o">=</span><span class="nf">guide_legend</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="m">1</span><span class="p">,</span><span class="n">ncol</span><span class="o">=</span><span class="m">3</span><span class="p">,</span><span class="n">override.aes</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">list</span><span class="p">(</span><span class="n">size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">5</span><span class="p">)),</span><span class="n">size</span><span class="o">=</span><span class="s">&#39;none&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">color</span><span class="o">=</span><span class="s">&#39;none&#39;</span><span class="p">)</span><span class="w"> </span><span class="o">+</span>
+<span class="linenos">20</span><span class="n">ggplot2</span><span class="o">::</span><span class="nf">scale_fill_manual</span><span class="p">(</span><span class="n">values</span><span class="o">=</span><span class="n">tissue_colors</span><span class="p">)</span><span class="w"> </span><span class="o">+</span>
+<span class="linenos">21</span><span class="n">ggplot2</span><span class="o">::</span><span class="nf">xlab</span><span class="p">(</span><span class="s">&quot;UMAP 1&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">+</span>
+<span class="linenos">22</span><span class="n">ggplot2</span><span class="o">::</span><span class="nf">ylab</span><span class="p">(</span><span class="s">&quot;UMAP 2&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<img alt="_images/Visualization_tumor%26cell_line.jpg" src="_images/Visualization_tumor%26cell_line.jpg" />
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Introduction.html" class="btn btn-neutral float-left" title="Introduction" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Biological%20Interpretability.html" class="btn btn-neutral float-right" title="Biological Interpretability" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, JunjieXia.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
