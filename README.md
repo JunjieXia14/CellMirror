@@ -111,3 +111,5 @@ This function provides 3 downstream analyses as follows:
 * LDVAE: https://github.com/YosefLab/scVI
 
 # Citation
+
+* Xia J, Cui J, Huang Z, Zhang S, Yao F, Zuo C. CellMirror: Deciphering Cell Populations from Spatial Transcriptomics Data by Interpretable Contrastive Learning. 2023.
