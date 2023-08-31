@@ -129,7 +129,7 @@ Kernal density plot of features and related genes (Python)
 
     plt.tight_layout()
 
-.. image:: ../Biological_interpretability_kernal.jpg
+.. image:: ../image/Biological_interpretability_kernal.jpg
 
 *******************************************************
 Gene set enrichment analysis for extracted features (R)
@@ -216,7 +216,7 @@ Gene set enrichment analysis for extracted features (R)
             axis.text.y = element_text(size=9))+
     scale_y_discrete(limits=data$pathway)
 
-.. image:: ../Biological_interpretability_GSEA.jpg
+.. image:: ../image/Biological_interpretability_GSEA.jpg
 
 **********************************************************
 Scatter plot between salient features and tumor purity (R)
@@ -264,4 +264,4 @@ Scatter plot between salient features and tumor purity (R)
                     axis.title.y = ggplot2::element_text(size=12),
                     axis.line = element_line(size=1.1))
 
-.. image:: ../Biological_interpretability_scatter.jpg
+.. image:: ../image/Biological_interpretability_scatter.jpg

@@ -268,4 +268,4 @@ Step6: Visualization (R)
     ggplot2::ylab("UMAP 2")
 
 
-.. image:: ../Visualization_tumor&cell_line.jpg
+.. image:: ../image/Visualization_tumor&cell_line.jpg

@@ -4,7 +4,7 @@
    contain the root `toctree` directive.
 
 
-.. image:: ../CellMirror_banner.jpg
+.. image:: ../image/CellMirror_banner.jpg
 
 Welcome to CellMirror's documentation !
 =======================================
@@ -12,7 +12,7 @@ Welcome to CellMirror's documentation !
 Graphical abstract
 ==================
 
-.. image:: ../Graphical_abstract.jpg
+.. image:: ../image/Graphical_abstract.jpg
 
 Highlights
 ==========

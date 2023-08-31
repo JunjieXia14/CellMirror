@@ -272,4 +272,4 @@ Step6: Visualization (R)
                     + ggplot2::ggtitle("CID44971 CellMirror")
                     )
 
-.. image:: ../Visualization_ST&scRNA_seq.jpg
+.. image:: ../image/Visualization_ST&scRNA_seq.jpg
