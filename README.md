@@ -112,4 +112,4 @@ This function provides 3 downstream analyses as follows:
 
 # Citation
 
-* Xia J, Cui J, Huang Z, Zhang S, Yao F, Zuo C. CellMirror: Deciphering Cell Populations from Spatial Transcriptomics Data by Interpretable Contrastive Learning. *IEEE MedAI*, 2023.
+* Xia J, Cui J, Huang Z, Zhang S, Yao F, Zhang Y, Zuo C. CellMirror: Deciphering Cell Populations from Spatial Transcriptomics Data by Interpretable Contrastive Learning. *IEEE International Conference on Medical Artificial Intelligence (MedAI)*, 2023.
