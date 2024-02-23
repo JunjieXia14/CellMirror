@@ -14,11 +14,17 @@ def parameter_setting():
     parser.add_argument('--max_epoch', '-me', type=int, default = 1000, help='Max epoches for target and background data')
     parser.add_argument('--epoch_per_test', '-ept', type=int, default = 10, help='how many epoches to compute silhouette score')
 
-    parser.add_argument('--lr_cLDVAE', type=float, default = 5e-6, help='Learning rate of cLDVAE model for target and background data')
-    parser.add_argument('--beta', type=float, default = 1, help='coefficient of KL_loss')
-    parser.add_argument('--gamma', type=float, default = -100, help='coefficient of TC_loss')
-    parser.add_argument('--batch_size', '-bs', type=int, default = 512, help='batch size of target and background data for each epoch ')
+    parser.add_argument('--lr_cLDVAE', type=float, default = 5e-5, help='Learning rate of cLDVAE model for target and background data')
+    parser.add_argument('--beta', type=float, default = 0.1, help='coefficient of KL_loss')
+    parser.add_argument('--gamma', type=float, default = 100, help='coefficient of TC_loss')
+    parser.add_argument('--batch_size', '-bs', type=int, default = 128, help='batch size of target and background data for each epoch ')
     parser.add_argument('--last_batch_size', '-lbs', type=int, default = 0, help='batch size for the last batch')
+
+    parser.add_argument('--n_hidden_en', type=list, default = [400], help='structure of contrasitve variational encoder')
+    parser.add_argument('--n_hidden_de', type=list, default = [200], help='structure of linear decoder')
+
+    parser.add_argument('--n_latent_s', type=int, default = 6, help='dimensionality of salient latent features')
+    parser.add_argument('--n_latent_z', type=int, default = 50, help='dimensionality of shared latent features')
 
     parser.add_argument('--use_cuda', dest='use_cuda', default=True, action='store_true', help=" whether use cuda(default: True)")
     parser.add_argument('--bias', type=bool, default = False, help='Whether use bias in linear decoder')
@@ -26,7 +32,115 @@ def parameter_setting():
 
     return parser
 
-def load_data(hgnc_file = 'hgnc_complete_set_7.24.2018.txt',
+def set_last_batchsize(args, tar_obj, bac_obj):
+
+    n = bac_obj.n_obs if bac_obj.n_obs>tar_obj.n_obs else tar_obj.n_obs
+
+    args.last_batch_size = n - int(n/args.batch_size)*args.batch_size
+
+    return args
+
+def pseudo_data_padding(tar_obj, bac_obj):
+
+    if bac_obj.n_obs > tar_obj.n_obs:
+
+        pseudo_bac = bac_obj.X.astype('float32')
+
+        pseudo_tar = np.concatenate( (tar_obj.X.todense(), np.random.multivariate_normal(np.mean(pd.DataFrame(tar_obj.X.todense()), axis=0), np.cov(pd.DataFrame(tar_obj.X.todense()).T), bac_obj.n_obs-tar_obj.n_obs)), axis=0 )
+        pseudo_tar = pseudo_tar.astype('float32')
+
+    else:
+
+        pseudo_tar = tar_obj.X.astype('float32')
+
+        pseudo_bac = np.concatenate( (bac_obj.X.todense(), np.random.multivariate_normal(np.mean(pd.DataFrame(bac_obj.X.todense()), axis=0), np.cov(pd.DataFrame(bac_obj.X.todense()).T), tar_obj.n_obs-bac_obj.n_obs)), axis=0 )
+        pseudo_bac = pseudo_bac.astype('float32')
+
+    return pseudo_tar, pseudo_bac
+
+def pseudo_data_deparser(tar_obj, pseudo_tar_z, bac_obj, pseudo_bac_z):
+
+    if bac_obj.n_obs > tar_obj.n_obs:
+
+        tar_z = pseudo_tar_z[:tar_obj.n_obs, :]
+
+        bac_z = pseudo_bac_z
+    
+    else:
+
+        bac_z = pseudo_bac_z[:bac_obj.n_obs, :]
+
+        tar_z = pseudo_tar_z
+
+    return tar_z, bac_z
+
+def mnn_correct(tar_z, bac_z):
+
+    import rpy2.robjects as robjects
+
+    robjects.r.library("here")
+    robjects.r.library("magrittr")
+    robjects.r.library("tidyverse")
+
+    rsource = robjects.r['source']
+    rhere = robjects.r['here']
+    rsource(rhere('CellMirror_utils', 'CellMirror_methods.R'))
+
+    import rpy2.robjects.numpy2ri, rpy2.robjects.pandas2ri
+    rpy2.robjects.numpy2ri.activate()
+    rpy2.robjects.pandas2ri.activate()
+
+    robjects.globalenv['tar_mat'] = pd.DataFrame(tar_z)
+    robjects.globalenv['tar_mat'] = robjects.r['as.matrix'](robjects.globalenv['tar_mat'])
+    robjects.globalenv['bac_mat'] = pd.DataFrame(bac_z)
+    robjects.globalenv['bac_mat'] = robjects.r['as.matrix'](robjects.globalenv['bac_mat'])
+
+    if bac_z.shape[0] > tar_z.shape[0]:
+
+        k1 = 5
+
+        k2 = (int(bac_z.shape[0] / tar_z.shape[0]) + 1) * k1
+
+    else:
+
+        k2 = 5
+
+        k1 = (int(tar_z.shape[0] / bac_z.shape[0]) + 1) * k2
+
+    rmnn = robjects.r['modified_mnnCorrect']
+    robjects.globalenv['mnn_res'] = rmnn(robjects.globalenv['bac_mat'], robjects.globalenv['tar_mat'], 
+                                         k1, k2
+                                        )
+
+    tar_corr = np.array( (robjects.globalenv['mnn_res']).rx2('corrected') )
+
+    return tar_corr, bac_z
+
+def estimate_cell_type(tar_obj, bac_obj, neighbors=20, used_obsm='CellMirror', used_label='Cell_subtype'):
+
+    dist_mat = pd.DataFrame( np.corrcoef(bac_obj.obsm[used_obsm], tar_obj.obsm[used_obsm])[:bac_obj.n_obs, -tar_obj.n_obs:], index=bac_obj.obs.index, columns=tar_obj.obs.index )
+
+    class_prop = [ 
+                  ( bac_obj.obs.loc[ dist_mat[tar].sort_values(ascending=False).index[:neighbors] ][used_label].value_counts( ascending=False) / neighbors ).to_dict()
+                  for tar in dist_mat.columns 
+                 ]
+    
+    tar_obj.obs['class_prop'] = class_prop
+
+    celltypes = np.unique(bac_obj.obs[used_label].values).tolist()
+    tar_obj.obs[celltypes] = 0
+
+    for type in celltypes:
+        type_proportion = []
+        for tar in tar_obj.obs.index:
+            celltype_dict = tar_obj.obs.loc[tar]['class_prop']
+            if (type in celltype_dict.keys()):
+                type_proportion.append( float(celltype_dict[type]) )
+        tar_obj.obs[type] = type_proportion
+    
+    return tar_obj, bac_obj
+
+def load_TCGA_CCLE_data(hgnc_file = 'hgnc_complete_set_7.24.2018.txt',
               tumor_file = 'TCGA_mat.tsv',
               cell_line_file = 'CCLE_mat.csv',
               annotation_file = 'Celligner_info.csv'):
@@ -90,7 +204,7 @@ def load_data(hgnc_file = 'hgnc_complete_set_7.24.2018.txt',
 
     return result
 
-def load_single_cell_spatial_data( scRNA_path = '../NG_BRCA/scRNA/',
+def load_BrCa_data( scRNA_path = '../NG_BRCA/scRNA/',
                                    CID4465_path = '../NG_BRCA/CID4465/filtered_count_matrix/',
                                    CID44971_path = '../NG_BRCA/CID44971/filtered_count_matrix/'):
     

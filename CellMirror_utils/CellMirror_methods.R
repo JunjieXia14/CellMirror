@@ -1,29 +1,56 @@
 # Parameters
 global <- list(
-  n_genes = 'all', # set to 'all' to use all protein coding genes found in both datasets 
-  umap_n_neighbors = 10, # num nearest neighbors used to create UMAP plot
-  umap_min_dist = 0.5, # min distance used to create UMAP plot
-  mnn_k_CL = 5, # number of nearest neighbors of tumors in the cell line data
-  mnn_k_tumor = 50, # number of nearest neighbors of cell lines in the tumor data
-  top_DE_genes_per = 1000, # differentially expressed genes with a rank better than this is in the cell line or tumor data
-  # are used to identify mutual nearest neighbors in the MNN alignment step
-  remove_cPCA_dims = c(1,2,3,4), # which cPCA dimensions to regress out of the data 
-  distance_metric = 'euclidean', # distance metric used for the UMAP projection
-  mod_clust_res = 5, # resolution parameter used for clustering the data
+  mnn_k1 = 5, # number of nearest neighbors of the first dataset (with more cells/spots) in the other dataset (with less cells/spots)
+  mnn_k2 = 50, # vice versa
   mnn_ndist = 3, # ndist parameter used for MNN
-  n_PC_dims = 70, # number of PCs to use for dimensionality reduction
-  reduction.use = 'umap', # 2D projection used for plotting
-  fast_cPCA = 10 # to run fast cPCA (approximate the cPCA eigenvectors instead of calculating all) set this to a value >= 4
 )
+
+
+tissue_colors <- c(`central_nervous_system`= "#f5899e",`engineered_central_nervous_system` = "#f5899e",
+                   `teratoma` = "#f5899e",
+                   `bone` = "#9f55bb",   
+                   `pancreas` = "#b644dc", 
+                   `soft_tissue` = "#5fdb69",
+                   `skin` = "#6c55e2",    
+                   `liver` = "#9c5e2b",
+                   `blood` = "#da45bb",
+                   `lymphocyte`=  "#abd23f",
+                   `peripheral_nervous_system` = "#73e03d",
+                   `ovary` = "#56e79d",`engineered_ovary` = "#56e79d",
+                   `adrenal` = "#e13978",  `adrenal_cortex` = "#e13978",
+                   `upper_aerodigestive` = "#5da134",
+                   `kidney` = "#1f8fff",`engineered_kidney` = "#1f8fff",
+                   `gastric` = "#dfbc3a",
+                   `eye` = "#349077",
+                   `nasopharynx` = "#a9e082",
+                   `nerve` = "#c44c90",
+                   `unknown` = "#999999",
+                   `cervix` = "#5ab172",
+                   `thyroid` = "#d74829",
+                   `lung` = "#51d5e0",`engineered_lung` = "#51d5e0",
+                   `rhabdoid` = "#d04850",
+                   `germ_cell` = "#75dfbb",   `embryo` = "#75dfbb",
+                   `colorectal` = "#96568e",
+                   `endocrine` = "#d1d684",
+                   `bile_duct` = "#c091e3",                        
+                   `pineal` = "#949031",
+                   `thymus` = "#659fd9",
+                   `mesothelioma` = "#dc882d",
+                   `prostate` = "#3870c9", `engineered_prostate` = "#3870c9",
+                   `uterus` = "#e491c1",
+                   `breast` = "#45a132",`engineered_breast` = "#45a132",
+                   `urinary_tract` = "#e08571",
+                   `esophagus` = "#6a6c2c",
+                   `fibroblast` = "#d8ab6a",
+                   `plasma_cell` = "#e6c241")
 
 
 
 # run mutual nearest neighbors batch correction
-run_MNN <- function(CCLE_cor, TCGA_cor,  k1 = global$mnn_k_tumor, k2 = global$mnn_k_CL, ndist = global$mnn_ndist, 
-                    subset_genes) {
-  mnn_res <- modified_mnnCorrect(CCLE_cor, TCGA_cor, k1 = k1, k2 = k2, ndist = ndist, 
-                                 subset_genes = subset_genes)
-  
+run_MNN <- function(CCLE_cor, TCGA_cor,  k1 = global$mnn_k1, k2 = global$mnn_k2, ndist = global$mnn_ndist) {
+
+  mnn_res <- modified_mnnCorrect(CCLE_cor, TCGA_cor, k1 = k1, k2 = k2, ndist = ndist)
+
   return(mnn_res)
 }
 
@@ -33,14 +60,10 @@ run_MNN <- function(CCLE_cor, TCGA_cor,  k1 = global$mnn_k_tumor, k2 = global$mn
 
 # Modification of the scran::fastMNN (https://github.com/MarioniLab/scran)
 # Allows for separate k values per dataset, and simplifies some of the IO and doesn't use PCA reduction
-modified_mnnCorrect <- function(ref_mat, targ_mat, k1 = 20, k2 = 20, 
-                                ndist = 3, subset_genes = NULL) {
-  if (is.null(subset_genes)) {
-    subset_genes <- colnames(ref_mat)
-  }
-  
-  sets <- batchelor::findMutualNN(ref_mat[, subset_genes], 
-                                  targ_mat[, subset_genes], 
+modified_mnnCorrect <- function(ref_mat, targ_mat, k1 = 20, k2 = 20, ndist = 3) {
+
+  sets <- batchelor::findMutualNN(ref_mat, 
+                                  targ_mat, 
                                   k1 = k2, k2 = k1, 
                                   BPPARAM = BiocParallel::SerialParam())
   
@@ -63,7 +86,7 @@ modified_mnnCorrect <- function(ref_mat, targ_mat, k1 = 20, k2 = 20,
   re.ave.out <- .average_correction(ref_mat, sets$first, targ_mat, sets$second)
 
   targ_mat <- .tricube_weighted_correction(targ_mat, re.ave.out$averaged, re.ave.out$second, 
-                                           k=k2, ndist=ndist, subset_genes, BPPARAM=BiocParallel::SerialParam())
+                                           k=k2, ndist=ndist, BPPARAM=BiocParallel::SerialParam())
   
   final <- list(corrected = targ_mat, 
                 pairs = mnn_pairs)
@@ -107,7 +130,7 @@ modified_mnnCorrect <- function(ref_mat, targ_mat, k1 = 20, k2 = 20,
 
 #' @importFrom BiocNeighbors queryKNN
 #' @importFrom BiocParallel SerialParam
-.tricube_weighted_correction <- function(curdata, correction, in.mnn, k=20, ndist=3, subset_genes, BNPARAM=NULL, BPPARAM=BiocParallel::SerialParam())
+.tricube_weighted_correction <- function(curdata, correction, in.mnn, k=20, ndist=3, BNPARAM=NULL, BPPARAM=BiocParallel::SerialParam())
   # Computing tricube-weighted correction vectors for individual cells,
   # using the nearest neighbouring cells _involved in MNN pairs_.
   # Modified to use FNN rather than queryKNN for nearest neighbor finding
@@ -115,7 +138,7 @@ modified_mnnCorrect <- function(ref_mat, targ_mat, k1 = 20, k2 = 20,
   cur.uniq <- curdata[in.mnn,,drop=FALSE]
   safe.k <- min(k, nrow(cur.uniq))
   # closest <- queryKNN(query=curdata, X=cur.uniq, k=safe.k, BNPARAM=BNPARAM, BPPARAM=BPPARAM)
-  closest <- FNN::get.knnx(cur.uniq[, subset_genes], query=curdata[, subset_genes], k=safe.k)
+  closest <- FNN::get.knnx(cur.uniq, query=curdata, k=safe.k)
   # weighted.correction <- .compute_tricube_average(correction, closest$index, closest$distance, ndist=ndist)
   weighted.correction <- .compute_tricube_average(correction, closest$nn.index, closest$nn.dist, ndist=ndist)
   curdata + weighted.correction
@@ -147,4 +170,36 @@ modified_mnnCorrect <- function(ref_mat, targ_mat, k1 = 20, k2 = 20,
   } else {
     output
   }
+}
+
+# run GSEA using the fgsea package, with either gene or label permutation
+run_fGSEA <- function (gsc, X = NULL, y = NULL, perm_type = "label", nperm = 10000, 
+          min_set_size = 3, max_set_size = 300, stat_type = "t_stat", 
+          stat_trans = "none", gseaParam = 1, nproc = 0, gene_stat = NULL) 
+{
+  if (any(grepl("package:piano", search()))) {
+    detach("package:piano", unload = TRUE)
+  }
+  library(fgsea)
+  stopifnot(perm_type %in% c("label", "gene"))
+  if (perm_type == "label") {
+    stopifnot(is.matrix(X) & !is.null(y))
+    print(sprintf("Running sample-permutation testing with %d perms", 
+                  nperm))
+    used_samples <- which(!is.na(y))
+    used_genes <- which(apply(X[used_samples, ], 2, var, 
+                              na.rm = T) > 0)
+    fgseaRes <- fgsea::fgsea(pathways = GSEABase:::geneIds(gsc), mat = t(X[used_samples, 
+                                                                 used_genes]), labels = y[used_samples], minSize = min_set_size, 
+                              maxSize = max_set_size, nperm = nperm, gseaParam = gseaParam, 
+                              nproc = nproc)
+  }
+  else if (perm_type == "gene") {
+    print(sprintf("Running gene-permutation testing with %d perms", 
+                  nperm))
+    fgseaRes <- fgsea::fgsea(pathways = GSEABase:::geneIds(gsc), stats = gene_stat, 
+                             minSize = min_set_size, maxSize = max_set_size, 
+                             nperm = nperm, gseaParam = gseaParam, nproc = nproc)
+  }
+  return(fgseaRes)
 }

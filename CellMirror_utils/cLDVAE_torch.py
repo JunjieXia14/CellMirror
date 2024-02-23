@@ -1,11 +1,13 @@
-import math
 import numpy as np
 import time
 import torch
 import torch.nn as nn
 from torch.autograd.variable import Variable
+import math
+from tqdm import tqdm
+from tqdm.autonotebook import trange
 
-from CellMirror_utils.layers import *
+from layers import *
 
 #cLDVAE_Pytorch_version
 class cLDVAE(nn.Module):
@@ -13,18 +15,14 @@ class cLDVAE(nn.Module):
         self,
         args,
         n_input: int,
-        n_hidden_en,
-        n_hidden_de,
-        n_latent_s: int = 10,
-        n_latent_z: int = 40,
         dropout_rate: float = 0
     ):
         super().__init__()
         self.args = args
         self.n_input = n_input
-        self.n_hidden_de = n_hidden_de
-        self.n_latent_s = n_latent_s
-        self.n_lantent_z = n_latent_z
+        self.n_hidden_de = args.n_hidden_de
+        self.n_latent_s = args.n_latent_s
+        self.n_lantent_z = args.n_latent_z
         self.beta = args.beta
         self.gamma = args.gamma
         self.batch_size = args.batch_size
@@ -32,28 +30,28 @@ class cLDVAE(nn.Module):
 
         self.s_encoder = Encoder(
             n_input = n_input,
-            n_output = n_latent_s,
-            n_hidden = [n_hidden_en] if isinstance(n_hidden_en, int) else n_hidden_en,
+            n_output = args.n_latent_s,
+            n_hidden = [args.n_hidden_en] if isinstance(args.n_hidden_en, int) else args.n_hidden_en,
             dropout_rate = dropout_rate
         )
         
         self.z_encoder = Encoder(
             n_input = n_input,
-            n_output = n_latent_z,
-            n_hidden = [n_hidden_en] if isinstance(n_hidden_en, int) else n_hidden_en,
+            n_output = args.n_latent_z,
+            n_hidden = [args.n_hidden_en] if isinstance(args.n_hidden_en, int) else args.n_hidden_en,
             dropout_rate = dropout_rate 
         )
 
         self.linear_decoder = LinearDecoder(
-            n_input = n_latent_s + n_latent_z,
+            n_input = args.n_latent_s + args.n_latent_z,
             n_output = n_input,
-            n_hidden = [n_hidden_de] if isinstance(n_hidden_de, int) else n_hidden_de,
+            n_hidden = [args.n_hidden_de] if isinstance(args.n_hidden_de, int) else args.n_hidden_de,
             bias = args.bias,
             dropout_rate = dropout_rate
         )
 
         self.discriminator = Discriminator(
-            n_input = n_latent_s + n_latent_z,
+            n_input = args.n_latent_s + args.n_latent_z,
             n_output = 1,
             use_sigmoid = True,
             dropout_rate = dropout_rate
@@ -257,76 +255,77 @@ class cLDVAE(nn.Module):
 
         start = time.time()
 
-        for epoch in range( 1, self.args.max_epoch + 1 ):
+        with trange(1, self.args.max_epoch + 1, total=self.args.max_epoch, desc='Epochs') as tq:
+            for epoch in tq:
 
-            self.train()
-            optimizer.zero_grad()
+                self.train()
+                optimizer.zero_grad()
 
-            patience_epoch += 1
+                patience_epoch += 1
 
-            for batch_idx, (tg, bg) in enumerate(train_loader):
+                for batch_idx, (tg, bg) in enumerate(train_loader):
 
-                if self.args.use_cuda and torch.cuda.is_available():
-                    tg, bg = tg.cuda(), bg.cuda()
+                    if self.args.use_cuda and torch.cuda.is_available():
+                        tg, bg = tg.cuda(), bg.cuda()
 
-                tg = Variable(tg)
-                bg = Variable(bg)
+                    tg = Variable(tg)
+                    bg = Variable(bg)
 
-                _, _, _, _, loss= self.get_cLDVAE_loss(tg, bg)
+                    _, _, _, _, loss= self.get_cLDVAE_loss(tg, bg)
 
-                loss.backward()
-                optimizer.step()
+                    loss.backward()
+                    optimizer.step()
 
-            if epoch % self.args.epoch_per_test == 0 and epoch > 0:
-                self.eval()
-                with torch.no_grad():
-                    
-                    '''
-                    loss
-                    '''
+                if epoch % self.args.epoch_per_test == 0 and epoch > 0:
+                    self.eval()
+                    with torch.no_grad():
+                        
+                        '''
+                        loss
+                        '''
 
-                    test_loss = 0
-                    for batch_idx, (tg, bg) in enumerate(total_loader):
+                        test_loss = 0
+                        for batch_idx, (tg, bg) in enumerate(total_loader):
 
-                        if self.args.use_cuda and torch.cuda.is_available():
-                            tg, bg = tg.cuda(), bg.cuda()
+                            if self.args.use_cuda and torch.cuda.is_available():
+                                tg, bg = tg.cuda(), bg.cuda()
 
-                        tg = Variable(tg)
-                        bg = Variable(bg)
+                            tg = Variable(tg)
+                            bg = Variable(bg)
 
-                        _, _, _, _, loss = self.get_cLDVAE_loss(tg, bg)
+                            _, _, _, _, loss = self.get_cLDVAE_loss(tg, bg)
 
-                        if math.isnan(loss.item()):
-                            flag_break = 1
-                            break
+                            if math.isnan(loss.item()):
+                                flag_break = 1
+                                break
 
-                        test_loss += loss.item()
-                    test_loss = test_loss / (batch_idx+1)
+                            test_loss += loss.item()
+                        test_loss = test_loss / (batch_idx+1)
 
-                    loss_list.append(test_loss)
+                        loss_list.append(test_loss)
 
-                    if  test_loss < loss_like_min:
-                        loss_like_min = test_loss
-                        reco_epoch_test = epoch
-                        patience_epoch = 0
+                        if  test_loss < loss_like_min:
+                            loss_like_min = test_loss
+                            reco_epoch_test = epoch
+                            patience_epoch = 0
 
-                if flag_break == 1:
-                    print('containin NA')
-                    print(epoch)
-                    break
-
-                if patience_epoch >=30 :
-                    print('patient with 40')
-                    print(epoch, loss_list[-1])
-                    break
-
-                if len(loss_list)>=2:
-                    relative_loss = ( loss_list[-1] - loss_list[-2] ) / loss_list[-2]
-                    # print(epoch, loss_list[-1], relative_loss)
-
-                    if abs(relative_loss) < 1e-4 and test_loss < loss_like_min:
-                        print('converged!!!')
+                    if flag_break == 1:
+                        print('containin NA')
+                        print(epoch)
                         break
+
+                    if patience_epoch >=30 :
+                        print('patient with 40')
+                        print(epoch, loss_list[-1])
+                        break
+
+                    if len(loss_list)>=2:
+                        relative_loss = ( loss_list[-1] - loss_list[-2] ) / loss_list[-2]
+                        # print(epoch, loss_list[-1], relative_loss)
+
+                        if abs(relative_loss) < 1e-4 and test_loss < loss_like_min:
+                            print('converged!!!')
+                            break
 
         duration = time.time() - start
 
