@@ -4,7 +4,7 @@
 
 ![image](https://github.com/JunjieXia14/CellMirror/blob/main/CellMirror_utils/Main_figure_CellMirror.png)
 
-**Overview of CellMirror.** **a** Given two different transcriptome data as target and reference data, CellMirror adopts contrastive variational autoencoder (with non-linear encoder and linear decoder) to learn salient features that are unique to the target dataset and common features that are shared by both datasets (Methods). **b** CellMirror uses the common features disentangled from cLDVAE as input for MNN to eliminate batch effects (Methods), and ultimately aligns target and reference datasets. **c** The learned weights from the linear decoder in cLDVAE can be used to identify the genes or gene programs related to features (Methods), with a higher value indicating enrichment of the corresponding gene in a latent feature. The dataset aligned by CellMirror can be used for visualization and label transfer: (i) annotating each cell line or tumor sample with the most frequent cancer type among its nearest neighbors, when applied to integrate cancer samples and cell lines; (ii) predicting cell type probabilities for each spot based on the cell type proportions of its nearest neighbors, when integrating scRNA-seq and ST data.
+**Overview of CellMirror.** **a** Given the reference and target datasets as input, CellMirror adopts interpretable contrastive variational autoencoder (i.e., cLDVAE) with nonlinear encoder and linear decoder to learn salient features that are unique to the target data and shared features representing biological variations in both datas. **b** CellMirror leverages MNN to learn common features by removing the batch effects between two datasets in the shared feature space. **c** The common features can be used for label transfer and visualization, and the weights of genes for each feature can be used for biological interpretations.
 
 # Getting started
 
@@ -18,31 +18,38 @@ Installation was tested on Red Hat 7.6 with Python 3.8.5 and torch 1.4.0 on a ma
 
 ### 1. Grab source code of CellMirror
 
-```
+```bash
 git clone https://github.com/JunjieXia14/CellMirror.git
-
 cd CellMirror
 ```
 
 ### 2. Install CellMirror in the virtual environment by conda
 
 * Firstly, install conda: https://docs.anaconda.com/anaconda/install/index.html
-* Then, automatically install all used packages (described by "used_package.txt") for CellMirror in a few mins.
+* Then, automatically install all used packages (described by "requirements.yml") for CellMirror in a few mins.
 
-```
-conda create -n CellMirror python=3.8.5 pip
-
-source activate
-
+```bash
+conda config --set channel_priority strict
+conda env create -f requirements.yml
 conda activate CellMirror
-
-pip install -r used_package.txt
 ```
+
+Other software dependencies are listed in "used_package.txt".
 
 ## Install R packages
 
-* Install tested on R = 4.0.0
-* install.packages(c("Seurat", "ggplot2", "patchwork", "stringr", "magrittr", "here", "tidyverse"))
+Our MNN program is deployed on R software and rpy2 library, please install r-base and related package dependecies via conda.
+
+Run the following commands in Linux Bash Shell:
+
+```bash
+conda install r-base
+conda install r-dplyr (here, magrittr, tidyverse, batchelor, BiocParallel, FNN)
+```
+
+Or you can install these package dependencies by install.packages() and BiocManager::install() commands in R script.
+
+Note: To reduce your waiting time, we recommend using the rpy2 library to call the path of R software installed in your existing virtual environment.
 
 # Quick start
 
