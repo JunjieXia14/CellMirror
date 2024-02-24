@@ -12,7 +12,7 @@ Welcome to CellMirror's documentation !
 Graphical abstract
 ==================
 
-.. image:: ../image/Graphical_abstract.jpg
+.. image:: ../image/Graphical_abstract.png
 
 Highlights
 ==========
