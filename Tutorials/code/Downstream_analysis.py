@@ -19,7 +19,7 @@ random.seed(args.seed)
 
 def labelTransfer(target_set_path, reference_set_path):
 
-    result = load_data()
+    result = load_TCGA_CCLE_data()
 
     TCGA_obj = sc.AnnData(X=result[1], obs=result[3], var=result[0])
     CCLE_obj = sc.AnnData(X=result[2], obs=result[4], var=result[0])
@@ -82,7 +82,7 @@ def labelTransfer(target_set_path, reference_set_path):
 
 def Visualization(target_set_path, reference_set_path):
 
-    result = load_data()
+    result = load_TCGA_CCLE_data()
 
     TCGA_obj = sc.AnnData(X=result[1], obs=result[3], var=result[0])
     CCLE_obj = sc.AnnData(X=result[2], obs=result[4], var=result[0])
