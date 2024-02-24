@@ -56,4 +56,4 @@ Highlights
 Citation
 ========
 
-* Xia J, Cui J, Huang Z, Zhang S, Yao F, Zhang Y, Zuo C. CellMirror: Deciphering Cell Populations from Spatial Transcriptomics Data by Interpretable Contrastive Learning. *IEEE International Conference on Medical Artificial Intelligence (MedAI)*, 2023.
+* Xia J, Cui J, Huang Z, Zhang S, Yao F, Zhang Y, Zuo C. CellMirror: Deciphering Cell Populations from Spatial Transcriptomics Data by Interpretable Contrastive Learning. *2023* *IEEE International Conference on Medical Artificial Intelligence (MedAI)*, Beijing, China, 2023, pp. 165-176, doi: 10.1109/MedAI59581.2023.00029.

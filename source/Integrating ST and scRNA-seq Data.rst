@@ -2,8 +2,8 @@ Integrating ST adn scRNA-seq Data
 =================================
 
 In this tutorial, we show how to apply ``CellMirror`` to integrate ST and scRNA-seq data.
-As an example, we use the ST data and paired scRNA-seq data of breast cancer patient CID44971 from `Wu, et al. 2021. <https://www.nature.com/articles/s41588-021-00911-1>`_,
-including 1,162 spots and 7,986 cells.
+As an example, we use the ST data and paired scRNA-seq data of pancreatic ductal adenocarcinoma (PDAC) patient from `Moncada , et al. 2020. <https://www.nature.com/articles/s41587-019-0392-8>`_,
+including 428 spots and 1,926 cells.
 
 ********************************
 Step0: Loading packages (Python)
@@ -12,12 +12,17 @@ Step0: Loading packages (Python)
 .. code-block:: python
     :linenos:
 
-    import math
+    import warnings
+    warnings.filterwarnings("ignore")
+
+    import os
+    os.environ['R_HOME'] = '/sibcb2/chenluonanlab7/zuochunman/anaconda3/envs/r4.0/lib/R'
+    os.environ['R_USER'] = '/sibcb2/chenluonanlab7/zuochunman/anaconda3/envs/CellMirror/lib/python3.8/site-packages/rpy2'
+
     import random
-    import pandas as pd
     import numpy as np
     import scanpy as sc
-    import datetime
+    import matplotlib.pyplot as plt
 
     from CellMirror_utils.utilities import *
     from CellMirror_utils.layers import *
@@ -27,14 +32,16 @@ Step0: Loading packages (Python)
     parser = parameter_setting()
     args = parser.parse_known_args()[0]
 
-    args.batch_size = 128
-    args.lr_cLDVAE = 6e-6
-    args.beta = 0.2
-
+    # Set seed
     np.random.seed(args.seed)
     random.seed(args.seed)
     torch.manual_seed(args.seed)
     torch.cuda.manual_seed(args.seed)
+
+    args.lr_cLDVAE = 1e-5; args.gamma = -100
+
+    # Set workpath
+    Save_path = '/sibcb2/chenluonanlab7/zuochunman/Share_data/xiajunjie/PDAC/'
 
 **********************************************
 Step1: Reading and preprocessing data (Python)
@@ -43,31 +50,33 @@ Step1: Reading and preprocessing data (Python)
 .. code-block:: python
     :linenos:
 
-    result = load_single_cell_spatial_data()
+    # Normalization
+    PDAC_A_st = sc.read_h5ad(Save_path + 'PDAC_A_st.h5ad')
+    PDAC_A_st.obs['type'] = 'Spatial'
+    PDAC_A_st.obs['y'] = 100 - PDAC_A_st.obs['y'] 
+    PDAC_A_st.obsm['spatial'] = PDAC_A_st.obs[['x','y']].values
+    sc.pp.normalize_total(PDAC_A_st)
+    sc.pp.log1p(PDAC_A_st)
+    sc.pp.highly_variable_genes(PDAC_A_st, flavor='seurat', n_top_genes=3000)
 
-    singleCell_obj = result['singleCell_obj_CID44971']
-    singleCell_obj.obs['type'] = 'SingleCell'
-    spatial_obj = result['spatial_obj_CID44971']
-    spatial_obj.obs['type'] = 'Spatial'
+    PDAC_A_sc = sc.read_h5ad(Save_path + 'PDAC_A_sc.h5ad')
+    PDAC_A_sc.obs['type'] = 'SingleCell'
+    sc.pp.normalize_total(PDAC_A_sc)
+    sc.pp.log1p(PDAC_A_sc)
+    sc.pp.highly_variable_genes(PDAC_A_sc, flavor='seurat', n_top_genes=3000)
 
-    sc.pp.normalize_total(singleCell_obj, inplace=True)
-    sc.pp.log1p(singleCell_obj)
-    sc.pp.highly_variable_genes(singleCell_obj, flavor='seurat', n_top_genes=3000)
+    common_HVGs=np.intersect1d(list(PDAC_A_sc.var.index[PDAC_A_sc.var['highly_variable']]),list(PDAC_A_st.var.index[PDAC_A_st.var['highly_variable']])).tolist()
+    print(len(common_HVGs))
 
-    sc.pp.normalize_total(spatial_obj, inplace=True)
-    sc.pp.log1p(spatial_obj)
-    sc.pp.highly_variable_genes(spatial_obj, flavor='seurat', n_top_genes=3000)
+    PDAC_A_st, PDAC_A_sc = PDAC_A_st[:,common_HVGs], PDAC_A_sc[:,common_HVGs]
 
-    common_HVGs=np.intersect1d(list(singleCell_obj.var.index[singleCell_obj.var['highly_variable']]),list(spatial_obj.var.index[spatial_obj.var['highly_variable']])).tolist()
+    print('\nShape of target object: ', PDAC_A_st.shape, '\tShape of background object: ', PDAC_A_sc.shape)
 
-    singleCell_obj, spatial_obj = singleCell_obj[:,common_HVGs], spatial_obj[:,common_HVGs]
-    genes_info = singleCell_obj.var
+    # Last batch setting
+    args = set_last_batchsize(args, PDAC_A_st, PDAC_A_sc)
 
-    target_obj_X_df = pd.DataFrame(spatial_obj.X.todense(), index=spatial_obj.obs.index, columns=genes_info.index)
-    target_scale = np.concatenate( (target_obj_X_df.values, np.random.multivariate_normal(np.mean(target_obj_X_df, axis=0), np.cov(target_obj_X_df.T), len(background_obj_X_df)-len(target_obj_X_df))), axis=0)
-
-    background_obj_X_df = pd.DataFrame(singleCell_obj.X.todense(), index=singleCell_obj.obs.index, columns=genes_info.index)
-    background_scale = background_obj_X_df.values
+    # Pseudo-data padding
+    pseudo_st, pseudo_sc = pseudo_data_padding(PDAC_A_st, PDAC_A_sc)
 
 
 *************************************
@@ -77,41 +86,15 @@ Step2: Training cLDVAE model (Python)
 .. code-block:: python
     :linenos:
 
-    background = (background_scale).astype('float32')
+    # Dataloader preparation
+    train = data_utils.TensorDataset(torch.from_numpy(pseudo_st),torch.from_numpy(pseudo_sc))
+    train_loader = data_utils.DataLoader(train, batch_size=args.batch_size, shuffle=True)
 
-    target = (target_scale).astype('float32')
+    total = data_utils.TensorDataset(torch.from_numpy(pseudo_st),torch.from_numpy(pseudo_sc))
+    total_loader = data_utils.DataLoader(total, batch_size=args.batch_size, shuffle=False)
 
-    train = data_utils.TensorDataset(torch.from_numpy(target),torch.from_numpy(background))
-    train_loader = data_utils.DataLoader(train, batch_size=batch_size, shuffle=True)
-
-    total = data_utils.TensorDataset(torch.from_numpy(target),torch.from_numpy(background))
-    total_loader = data_utils.DataLoader(total, batch_size=batch_size, shuffle=False)
-
-    input_dim=len(genes_info)
-    intermediate_dim_en=[200]
-    intermediate_dim_de=[200]
-
-    s_latent_dim = 6
-    z_latent_dim = 50
-
-    salient_colnames = list(range(1, s_latent_dim + 1))
-    for sColumn in range(s_latent_dim):
-        salient_colnames[sColumn] = "s" + str(salient_colnames[sColumn])
-    irrelevant_colnames = list(range(1, z_latent_dim + 1))
-    for iColumn in range(z_latent_dim):
-        irrelevant_colnames[iColumn] = "z" + str(irrelevant_colnames[iColumn])
-
-    n = singleCell_obj.X.shape[0]
-    args.last_batch_size = n - int(n/batch_size)*batch_size
-
-    model_cLDVAE = cLDVAE(args=args, 
-                        n_input = input_dim, 
-                        n_hidden_en = intermediate_dim_en, n_hidden_de = intermediate_dim_de, 
-                        n_latent_s = s_latent_dim, n_latent_z = z_latent_dim)
-
-    if args.use_cuda:
-        model_cLDVAE.cuda()
-
+    # Run cLDVAE
+    model_cLDVAE = cLDVAE(args=args, n_input=PDAC_A_st.shape[1]).cuda()
     history = model_cLDVAE.fit(train_loader, total_loader)
 
 *************************************
@@ -121,70 +104,38 @@ Step3: Saving cLDVAE outputs (Python)
 .. code-block:: python
     :linenos:
 
+    # Pseudo-data deparsing
     outputs = model_cLDVAE.predict(total_loader)
-
-    tg_z_output = outputs['tg_z_outputs']
-    noContamination_output = pd.DataFrame(tg_z_output[:len(spatial_obj.obs), :], index=spatial_obj.obs.index, columns=irrelevant_colnames)
-    noContamination_output.to_csv('spatial_data_CID44971_cLDVAE_only.csv')
-
-    bg_z_output = outputs['bg_z_outputs']
-    bg_output = pd.DataFrame(bg_z_output, index=singleCell_obj.obs.index, columns=irrelevant_colnames)
-    bg_output.to_csv('singleCell_data_CID44971_cLDVAE_only.csv')
-
-    singleCell_spatial_dist_cLDVAE = pd.DataFrame( np.corrcoef(bg_output, noContamination_output)[:len(bg_output), -len(noContamination_output):], index=singleCell_obj.obs.index, columns=spatial_obj.obs.index )
-
-    spatial_singleCell_class_cLDVAE = []
-    for spatialT in singleCell_spatial_dist_cLDVAE.columns:
-        spatial_singleCell_class_cLDVAE.append( ( singleCell_obj.obs.loc[ singleCell_spatial_dist_cLDVAE[spatialT].sort_values(ascending=False).index[:20] ]['celltype_major'].value_counts( ascending=False) / 20 ).astype(str).apply(lambda x: x+'0' if len(x)<4 else x).to_dict() )
-
-    spatial_obj.obs['celltype_major'] = spatial_singleCell_class_cLDVAE
-
-    cLDVAE_only_obj = sc.AnnData( pd.concat([bg_output, noContamination_output], axis = 0), pd.concat([singleCell_obj.obs, spatial_obj.obs], axis=0), pd.DataFrame(irrelevant_colnames,index=irrelevant_colnames) )
-    sc.pp.neighbors(cLDVAE_only_obj, n_neighbors=20, metric='correlation',use_rep='X')
-    sc.tl.umap(cLDVAE_only_obj,min_dist=0.5)
-    cLDVAE_only_obj.obs = cLDVAE_only_obj.obs.merge(cLDVAE_only_obj.obsm.to_df()[['X_umap1','X_umap2']], how='inner', left_index=True, right_index=True)
-    cLDVAE_only_obj.obs.to_csv(f'en_nodes{intermediate_dim_en}_de_nodes{intermediate_dim_de}_spatial_scRNA_CID44971_ann_cLDVAE_only_s_dim{s_latent_dim}_z_dim{z_latent_dim}_lr{args.lr_cLDVAE}_beta{args.beta}_gamma{args.gamma}_bs{args.batch_size}_epoch_at{epoch}_time{datetime.datetime.now()}.csv')
-
-    tg_s_output = outputs["tg_s_outputs"]
-    tg_s_output = pd.DataFrame(tg_s_output[:len(spatial_obj.obs), :], index=spatial_obj.obs.index, columns=salient_colnames)
-    tg_s_output.to_csv(f"CID44971_cLDVAE_only_spatial_salient_features_lr{args.lr_cLDVAE}_beta{args.beta}_gamma{args.gamma}_bs{args.batch_size}_s_dim{s_latent_dim}_z_dim{z_latent_dim}_time{datetime.datetime.now()}.csv")
-
-    s_loadings_output = model_cLDVAE.get_loadings()[:,-(s_latent_dim):]
-    s_loadings_output = pd.DataFrame(s_loadings_output, index=genes_info.index, columns=salient_colnames)
-    s_loadings_output.to_csv(f"CID44971_cLDVAE_only_salient_loadings_matrix_lr{args.lr_cLDVAE}_beta{args.beta}_gamma{args.gamma}_bs{args.batch_size}_time{datetime.datetime.now()}.csv")
+    PDAC_A_st.obsm['cLDVAE'], PDAC_A_sc.obsm['cLDVAE'] = pseudo_data_deparser(PDAC_A_st, outputs['tg_z_outputs'], PDAC_A_sc, outputs['bg_z_outputs'])
 
 
 *************************************************
-Step4: Implementing MNN on the processed data (R)
+Step4: Implementing MNN on the processed data (Python)
 *************************************************
 
-.. code-block:: R
+.. code-block:: Python
     :linenos:
 
-    library(here)
-    library(magrittr)
-    library(tidyverse)
-    source(here::here('CellMirror_utils','CellMirror_methods.R'))
+    # Run MNN
+    PDAC_A_st.obsm['CellMirror'], PDAC_A_sc.obsm['CellMirror'] = mnn_correct(PDAC_A_st.obsm['cLDVAE'], PDAC_A_sc.obsm['cLDVAE'])
 
-    spatial_cor<-read.csv('spatial_data_CID44971_cLDVAE_only.csv')
-    rownames(spatial_cor)<-spatial_cor$X
-    spatial_cor<-as.matrix(spatial_cor[,-1])
-
-    singleCell_cor<-read.csv('singleCell_data_CID44971_cLDVAE_only.csv')
-    rownames(singleCell_cor)<-singleCell_cor$X
-    singleCell_cor<-as.matrix(singleCell_cor[,-1])
-
-    mnn_res <- run_MNN(singleCell_cor, spatial_cor, k1 = 5, k2 = 50, ndist = global$mnn_ndist,subset_genes = colnames(spatial_cor))
+    # Cell type estimation
+    PDAC_A_st, PDAC_A_sc = estimate_cell_type(PDAC_A_st, PDAC_A_sc, used_obsm='CellMirror', used_label='cell_type_ductal', neighbors=50)
 
 ***********************************************
-Step5: Saving results aligned by CellMirror (R)
+Step5: Saving results for further visualization (Python)
 ***********************************************
 
-.. code-block:: R
+.. code-block:: Python
     :linenos:
 
-    write.csv(mnn_res$corrected,'spatial_data_CID44971_CellMirror.csv')
-    write.csv(singleCell_cor, 'singleCell_data_CID44971_CellMirror.csv')
+    # Save data
+    colors = np.unique(PDAC_A_sc.obs['cell_type_ductal'].values).tolist()
+    sc.pl.spatial(PDAC_A_st, img_key=None, color=colors, color_map=plt.cm.get_cmap('plasma'), ncols=5, spot_size=1, frameon=False, show=False)
+    plt.savefig(Save_path + 'PDAC_A_CellMirror_celltype_proportion.jpg', dpi=100)
+
+    PDAC_A_st.obs.to_csv(Save_path + 'PDAC_st_CellMirror_celltype_proportion.csv')
+    PDAC_A_st.write(Save_path + 'PDAC_A_CellMirror.h5ad', compression='gzip')
 
 ************************
 Step6: Visualization (R)
@@ -193,83 +144,32 @@ Step6: Visualization (R)
 .. code-block:: R
     :linenos:
 
-    library(Seurat)
-    library(ggplot2)
-    library(patchwork)
-    library(stringr)
-    library(magrittr)
-
-    spatial_obj <- CreateSeuratObject(
-    counts = Read10X( 
-            data.dir = 'D:\\经统一班\\1A(2222479)论文记录\\汇报记录\\汇报2023年2月6日11点20分\\CID44971\\filtered_count_matrix', 
-            gene.column=1, 
-            cell.column=1),
-    assay = 'Spatial'
-    )
-
-    spatial_image <- Read10X_Image(image.dir = 'D:\\经统一班\\1A(2222479)论文记录\\汇报记录\\汇报2023年2月6日11点20分\\CID44971\\spatial')
-
-    image <- spatial_image[Cells(x = spatial_obj)]
-
-    DefaultAssay(object = image) <- 'Spatial'
-
-    spatial_obj[['Slice1']] <- image
-
-    ann <- read.csv('C:\\Users\\我的电脑\\Desktop\\待办\\spatial_scRNA_CID44971_ann_en_nodes[200]_de_nodes[200]_cLDVAE_MNN_s_dim6_z_dim50_beta0.2_lr6e-06_time2023-04-02 02_33_27.537614.csv') %>% dplyr::filter(type=='Spatial')
-
-    spatial_obj@meta.data$celltype <- ann$celltype_major
-
-    celltypes <- c('T-cells','Cancer Epithelial','Myeloid','Endothelial','CAFs','PVL','Normal Epithelial','Plasmablasts','B-cells')
-
-    spatial_obj@meta.data[,celltypes]<-0
-
-    for (type in celltypes){
-    for (i in 1:dim(spatial_obj@meta.data)[1]){
-        
-        s <- spatial_obj@meta.data[i,]$celltype
-        
-        if (grepl(type,s)==TRUE){
-        spatial_obj@meta.data[i,type] <- as.double(substr(s,str_locate(s,type)[,2]+5,str_locate(s,type)[,2]+5+3))
-        } 
-        else{
-        spatial_obj@meta.data[i,type] <- 0
-        }
-    }
-    }
-
-    slice<-names(spatial_obj@images)[1]
-
-    spatial_coord <- data.frame(spatial_obj@images[[slice]]@coordinates) %>% tibble::rownames_to_column("barcodeID") %>% dplyr::mutate(imagerow_scaled = imagerow * spatial_obj@images[[slice]]@scale.factors$lowres, imagecol_scaled = imagecol *spatial_obj@images[[slice]]@scale.factors$lowres) 
-
-    spatial_coord %<>% dplyr::left_join(spatial_obj@meta.data %>% tibble::rownames_to_column("barcodeID"), by = "barcodeID")
-
-    spatial_coord <- dplyr::select(spatial_coord,-celltype)
-
-    img <- png::readPNG('D:\\经统一班\\1A(2222479)论文记录\\汇报记录\\汇报2023年2月6日11点20分\\CID44971\\spatial\\tissue_lowres_image.png')
-
-    img_grob <- grid::rasterGrob(img, interpolate = FALSE, width = grid::unit(1,"npc"), height = grid::unit(1, "npc"))
+    PDAC_st <- read.csv('C:\\Users\\我的电脑\\Desktop\\待办\\PDAC_st_CellMirror_celltype_proportion.csv')
+    celltypes <- colnames(PDAC_st)[11:dim(PDAC_st)[2]]
 
     suppressMessages(
-                    ggplot2::ggplot() 
-                    + ggplot2::annotation_custom(grob = img_grob,xmin = 0, xmax = ncol(img), ymin = 0, ymax = -nrow(img)) 
-                    + scatterpie::geom_scatterpie(data = spatial_coord, ggplot2::aes(x = imagecol_scaled,y = imagerow_scaled), cols = celltypes, color = NA,alpha = 1, pie_scale = 0.5) 
-                    + ggplot2::scale_y_reverse() 
-                    + ggplot2::ylim(nrow(img), 0) 
-                    + ggplot2::xlim(0, ncol(img)) 
-                    + cowplot::theme_half_open(11,rel_small = 1) 
-                    + ggplot2::theme_void()
-                    + ggplot2::theme(plot.title = ggplot2::element_text(hjust=0.5))
-                    + ggplot2::coord_fixed(ratio = 1,xlim = NULL, ylim = NULL, expand = TRUE, clip = "on")
-                    + ggplot2::scale_fill_manual(values = c('T-cells'='#ff0000', 
-                                                            'Cancer Epithelial'='#ff8033', 
-                                                            'Myeloid'='#ffff00',
-                                                            'CAFs'='#006400',
-                                                            'Plasmablasts'='#00ff80',
-                                                            'Endothelial'='#87ceeb',
-                                                            'B-cells'='#800080',
-                                                            'Normal Epithelial'='#191970',
-                                                            'PVL'='#ff1493'))
-                    + ggplot2::ggtitle("CID44971 CellMirror")
-                    )
+    ggplot2::ggplot() 
+    + scatterpie::geom_scatterpie(data = PDAC_st, ggplot2::aes(x = x,y = y), cols = celltypes, color = NA,alpha = 1, pie_scale = 0.8) 
+    + ggplot2::scale_y_reverse() 
+    + ggplot2::theme_void()
+    + ggplot2::coord_fixed(ratio = 1,xlim = NULL, ylim = NULL, expand = TRUE, clip = "on")
+    + ggplot2::scale_fill_manual(values = c('Acinar.cells'='#FEDB2C', 
+                                            'Cancer.clone.A'='#4AAE4B', 
+                                            'Cancer.clone.B'='#FDCBE4',
+                                            'Ductal.antigen.presenting'='#7DC87E',
+                                            'Ductal.centroacinar'='#337FB4',
+                                            'Ductal.high.hypoxic'='#D9D9D9',
+                                            'Ductal.terminal'='#BAACCF',
+                                            'Endocrine.cells'='#FCBE84',
+                                            'Endothelial.cells'='#FFFF91',
+                                            'Fibroblasts'='#386AB2',
+                                            'Macrophages'='#BC5914',
+                                            'Mast.cells'='#656666',
+                                            'Monocytes'='#817EAE',
+                                            'RBCs'='#63A618',
+                                            'T...NK.cells'='#E7A703',
+                                            'Tuft.cells'='#A8771A',
+                                            'mDCs'='#D95E08',
+                                            'pDCs'='#E72989')))
 
-.. image:: ../image/Visualization_ST&scRNA_seq.jpg
+.. image:: ../image/PDAC_celltype_estimation.png
