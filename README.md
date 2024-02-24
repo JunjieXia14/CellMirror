@@ -57,44 +57,31 @@ Note: To reduce your waiting time, we recommend using the rpy2 library to call t
 
 #### Input
 
-Take the global alignment of tumors and cell lines as an example, the expression data and annotation file are available at https://github.com/JunjieXia14/CellMirror/tree/main/Data
+We take the global alignment of tumors and cell lines as an example input, which includes two types of files: (1) gene expression data and (2) annotation file. These input files are available at `Datasets/README/md` .
 
 #### Run
 
-Step 1. Run cLDVAE model
+Run the following commands in Linux Bash Shell:
 
-This function automatically (1) learns common features of target and reference sets by contrastive learning, (2) extracts target-specific representations, and (3) linear decoder weight for processing salient features. It takes ~5 mins for loading tumor and cell line data, and ~8 mins for contrastive learning.
-
+```bash
+cd Tutorials/code
+python TCGA_CCLE_CellMirror.py
 ```
-python cLDVAE_model.py
-```
 
-In running, the useful parameters:
+This script automatically (1) loads the input data as `AnnData` object, (2) learns shared features of target and reference datasets by contrastive learning, (3) extracts target-specific representations, (4) eliminates the batch effects between two datasets in the shared feature space for common features, and (5) saves linear decoder weight for processing latent (shared and salient) features. It takes ~5 mins for loading tumor and cell line data, ~8 mins for contrastive learning, and ~30 seconds for batch-correcting.
+
+**Hyperparameters**
 
 * max_epoch: defines the max iteration for training cLDVAE model. The default value is 1000. You can modify it. The smaller the parameter, the less time.
-* lr_cLDVAE: defines learning rate parameter for learning common features of target and reference sets by cLDVAE. The default value of the parameters is 3e-6.
+* lr_cLDVAE: defines learning rate parameter for learning shared features of target and reference sets by cLDVAE. The default value of the parameters is 3e-6.
 * beta: defines the penalty for the KL divergence. The default value is 1. You can adjust it from 0 to 1 by 0.1;
-* gamma: defines the penalty for the Total Correlation loss. The default value is 0. You can further improve the results of common features by adjusting it from -100 to 100 by 10.
+* gamma: defines the penalty for the Total Correlation loss. The default value is 0. You can further improve the results of shared features by adjusting it from -100 to 100 by 10.
 * batch_size: defines the batch size for training cLDVAE model. The default value is 128. You can modify it based on your memory size. The larger the parameter, the less time.
-* s_latent_dim: defines the dimension of salient features of cLDVAE model. The default value of the tumor and cell line dataset is 2.
-* z_latent_dim: defines the dimension of common features of cLDVAE model. The default value of the tumor and cell line dataset is 100. Given a specific dimension of salient features, a higher dimension of common features is recommended.
-
-Note: To reduce your waiting time, we have uploaded the processed results into the folder ./Data/CellMirror_test_data/. You can directly perform step 2.
-
-Step 2. Run CellMirror model
-
-This function from R file named CellMirror_model.R automatically learns batch corrected results of the common features of target and reference sets using MNN. It takes ~30 seconds.
-
-```
-Rscript CellMirror_model.R
-```
-
-In running, the useful parameters:
-
+* n_latent_s: defines the dimension of salient features of cLDVAE model. The default value of the tumor and cell line dataset is 2.
+* n_latent_z: defines the dimension of shared features of cLDVAE model. The default value of the tumor and cell line dataset is 100. Given a specific dimension of salient features, a higher dimension of shared features is recommended.
 * k1: defines the number of nearest neighbors of target data in the reference data. The default value is 5.
 * k2: defines the number of nearest neighbors of reference data in the target data. The default value is 50.
 * ndist: defines the ndist parameter used for MNN. The default value is 3.
-* subset_genes: defines a set of biologically relevant genes (e.g., highly variable genes) to facilitate identification of MNNs. The default subset_genes are the highly variable genes that are common in both expression data.
 
 #### Output
 
