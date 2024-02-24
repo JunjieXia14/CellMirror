@@ -44,14 +44,16 @@ def pseudo_data_padding(tar_obj, bac_obj):
 
     if bac_obj.n_obs > tar_obj.n_obs:
 
-        pseudo_bac = bac_obj.X.astype('float32')
+        pseudo_bac = bac_obj.X.toarray()
+        pseudo_bac = pseudo_bac.astype('float32')
 
         pseudo_tar = np.concatenate( (tar_obj.X.todense(), np.random.multivariate_normal(np.mean(pd.DataFrame(tar_obj.X.todense()), axis=0), np.cov(pd.DataFrame(tar_obj.X.todense()).T), bac_obj.n_obs-tar_obj.n_obs)), axis=0 )
         pseudo_tar = pseudo_tar.astype('float32')
 
     else:
 
-        pseudo_tar = tar_obj.X.astype('float32')
+        pseudo_tar = tar_obj.X.toarray()
+        pseudo_tar = pseudo_tar.astype('float32')
 
         pseudo_bac = np.concatenate( (bac_obj.X.todense(), np.random.multivariate_normal(np.mean(pd.DataFrame(bac_obj.X.todense()), axis=0), np.cov(pd.DataFrame(bac_obj.X.todense()).T), tar_obj.n_obs-bac_obj.n_obs)), axis=0 )
         pseudo_bac = pseudo_bac.astype('float32')
@@ -134,8 +136,7 @@ def estimate_cell_type(tar_obj, bac_obj, neighbors=20, used_obsm='CellMirror', u
         type_proportion = []
         for tar in tar_obj.obs.index:
             celltype_dict = tar_obj.obs.loc[tar]['class_prop']
-            if (type in celltype_dict.keys()):
-                type_proportion.append( float(celltype_dict[type]) )
+            type_proportion.append( float(celltype_dict[type]) ) if (type in celltype_dict.keys()) else type_proportion.append( float(0) )
         tar_obj.obs[type] = type_proportion
     
     return tar_obj, bac_obj
