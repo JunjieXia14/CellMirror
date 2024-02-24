@@ -85,7 +85,9 @@ This script automatically (1) loads the input data as `AnnData` object, (2) lear
 
 #### Output
 
-#### Run Downstream analysis on the output file
+Two `AnnData` objects of tumours and cell lines with CellMirror embeddings and salient features of tumours stored in `AnnData.obsm` , and linear decoder weight for processing shared (first 100) and salient (last 2) features stored in `AnnData.uns`.
+
+You can save these output results in the following format and run downstream analyses on the output file:
 
 * TCGA_CCLE_data_tumor_X_cLDVAE_only.csv
 * TCGA_CCLE_data_CL_X_cLDVAE_only.csv
@@ -94,15 +96,23 @@ This script automatically (1) loads the input data as `AnnData` object, (2) lear
 * TCGA_CCLE_data_tumor_X_CellMirror.csv
 * TCGA_CCLE_data_CL_X_CellMirror.csv
 
-```
+```bash
 python Downstream_analysis.py
 ```
 
-This function provides 3 downstream analyses as follows:
+This script provides 3 downstream analyses as follows:
 
 1. Label transfer: uses the aligned results (i.e., TCGA_CCLE_data_tumor_X_cLDVAE_only.csv & TCGA_CCLE_data_CL_X_cLDVAE_only.csv or TCGA_CCLE_data_tumor_X_CellMirror.csv & TCGA_CCLE_data_CL_X_CellMirror.csv) as input to predict the cell type of each cell in the target set or reference set.
 2. Interpretability: uses the target-specific representations and linear decoder weight for processing salient features (i.e., CGA_CCLE_data_tumor_salient_features.csv & TCGA_CCLE_data_salient_loadings_matrix.csv) as input to find the highly expressed genes in salient features.
 3. Visualization: maps the aligned results (i.e., TCGA_CCLE_data_tumor_X_cLDVAE_only.csv & TCGA_CCLE_data_CL_X_cLDVAE_only.csv or TCGA_CCLE_data_tumor_X_CellMirror.csv & TCGA_CCLE_data_CL_X_CellMirror.csv) into 2D-UMAP spaces for visualization.
+
+### Integrating scRNA-seq and spatial transcriptomics data for predicting cell populations
+
+#### Input
+
+#### Run
+
+#### Output
 
 ## More tutorials
 
