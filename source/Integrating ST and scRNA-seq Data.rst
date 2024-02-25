@@ -1,4 +1,4 @@
-Integrating ST adn scRNA-seq Data
+Integrating ST and scRNA-seq Data
 =================================
 
 In this tutorial, we show how to apply ``CellMirror`` to integrate ST and scRNA-seq data.
